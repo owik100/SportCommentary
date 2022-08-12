@@ -65,7 +65,7 @@ namespace SportCommentary.Areas.Identity.Pages.Account
             ///     directly from your code. This API may change or be removed in future releases.
             /// </summary>
             [Required]
-            [EmailAddress]
+            [EmailAddress(ErrorMessage = "Podany adres nie jest poprawnym adresem email")]
             public string Email { get; set; }
 
             /// <summary>
@@ -74,13 +74,14 @@ namespace SportCommentary.Areas.Identity.Pages.Account
             /// </summary>
             [Required]
             [DataType(DataType.Password)]
+            [Display(Name = "Hasło")]
             public string Password { get; set; }
 
             /// <summary>
             ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
             ///     directly from your code. This API may change or be removed in future releases.
             /// </summary>
-            [Display(Name = "Remember me?")]
+            [Display(Name = "Pamiętaj mnie?")]
             public bool RememberMe { get; set; }
         }
 
@@ -128,7 +129,7 @@ namespace SportCommentary.Areas.Identity.Pages.Account
                 }
                 else
                 {
-                    ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                    ModelState.AddModelError(string.Empty, "Błędny login lub hasło.");
                     return Page();
                 }
             }

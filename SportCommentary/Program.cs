@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity.UI;
 using Microsoft.EntityFrameworkCore;
 using SportCommentary.Areas.Identity;
 using SportCommentary.Data;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
@@ -27,10 +28,25 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 
 // Add services to the container.
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
-builder.Services.AddRazorPages();
+builder.Services.AddRazorPages().AddRazorRuntimeCompilation();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
 builder.Services.AddSingleton<WeatherForecastService>();
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("PolicyAdmin", policy =>
+        policy.RequireClaim(ClaimTypes.Role, "Admin"));
+});
+
+builder.Services.Configure<IdentityOptions>(options =>
+{
+    options.Password.RequireDigit = false;
+    options.Password.RequiredLength = 2;
+    options.Password.RequireLowercase = true;
+    options.Password.RequireUppercase = false;
+    options.SignIn.RequireConfirmedAccount = false;
+});
 
 var app = builder.Build();
 
@@ -45,6 +61,7 @@ else
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
+
 
 app.UseHttpsRedirection();
 
