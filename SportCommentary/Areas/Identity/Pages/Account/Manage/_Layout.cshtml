@@ -11,6 +11,13 @@
 
 <h1>Zarządzaj swoim kontem</h1>
 
+@{
+    if(User.IsInRole("Admin")){
+        <h2>Jesteś administratorem</h2>
+        <a class="nav-link" id="manageUsers" asp-page="../ManageUsers">Zarządzaj użytkownikami</a>
+    }
+}
+
 <div>
     <hr />
     <div class="row">

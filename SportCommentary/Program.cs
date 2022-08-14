@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity.UI;
 using Microsoft.EntityFrameworkCore;
 using SportCommentary.Areas.Identity;
 using SportCommentary.Data;
+using System;
 using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -24,7 +25,9 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options =>
     options.Password.RequireNonAlphanumeric = false;
 
 }
-    ).AddEntityFrameworkStores<ApplicationDbContext>();
+    ).AddRoles<IdentityRole>()
+    .AddEntityFrameworkStores<ApplicationDbContext>();
+     
 
 // Add services to the container.
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();

@@ -1,0 +1,29 @@
+﻿@page
+@model SportCommentary.Areas.Identity.Pages.Account.ManageUsersModel
+@{
+}
+
+<h1>Zarządzaj Użytkownikami</h1>
+<hr/>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">Nazwa użytkownika</th>
+      <th scope="col">Email</th>
+      <th scope="col">Rola</th>
+    </tr>
+  </thead>
+  <tbody>
+      @{
+          foreach (var user in Model.AllUsers)
+            {
+                @:<tr>
+                       <td> @user.Username</td>
+                        <td>@user.Email</td>
+                        <td>@user.Role</td>
+                  <tr/>
+            }
+      }
+  </tbody>
+  </table>
