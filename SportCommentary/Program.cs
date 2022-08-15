@@ -36,6 +36,8 @@ builder.Services.AddServerSideBlazor();
 builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
 builder.Services.AddSingleton<WeatherForecastService>();
 
+builder.Logging.AddLog4Net();
+
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("PolicyAdmin", policy =>

@@ -6,24 +6,95 @@
 <h1>Zarządzaj Użytkownikami</h1>
 <hr/>
 
-<table class="table">
+@{
+    if (ViewData["ManageMessage"] != null){
+        <div class="alert alert-danger" role="alert">
+            @ViewData["ManageMessage"]
+        </div>
+    }
+}
+
+<table class="table table-hover">
   <thead>
     <tr>
       <th scope="col">Nazwa użytkownika</th>
       <th scope="col">Email</th>
       <th scope="col">Rola</th>
+      <th scope="col">Akcje</th>
     </tr>
   </thead>
   <tbody>
       @{
           foreach (var user in Model.AllUsers)
             {
-                @:<tr>
-                       <td> @user.Username</td>
-                        <td>@user.Email</td>
-                        <td>@user.Role</td>
-                  <tr/>
+                                                        @:<tr>
+                                                               <td> @user.Username</td>
+                                                                <td>@user.Email</td>
+                                                                <td>@user.Role</td>
+                        if(user.Role.Contains("Admin")){
+                                                                    <td>
+                                                                                   <button type="button" class="btn btn-warning" onclick="GiveRole('undo', '@user.Username');">Odbierz rolę Admin</button>
+                                                                   </td>
+                        }
+                        else{
+                                                                    <td>
+                                                                                    <button type="button" class="btn btn-primary" onclick="GiveRole('give', '@user.Username');">Nadaj rolę Admin</button>
+                                                                   </td>
+                        }
+                                                          <tr/>
             }
       }
   </tbody>
   </table>
+
+  <div class="modal" id="exampleModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Uwaga</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p id="modal-body"></p>
+      </div>
+      <div class="modal-footer">
+      <form method="post">
+        <input id="userEmailInput" type="hidden" name="user" value="" />
+
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
+        <button type="submit" class="btn btn-primary" id="btnAccept">Potwierdź</button>
+      </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+ <script>
+     function GiveRole(give, userName){
+         let myModal = new bootstrap.Modal(document.getElementById('exampleModal'))
+         let txt = "";
+         if((give == 'give')){
+              txt = `Czy na pewno chcesz nadać uprawnienia administratora użytkownikowi ${userName}?`;
+         }
+         else{
+             txt = `Czy na pewno chcesz odebrać uprawnienia administratora użytkownikowi ${userName}?`;
+         }
+         document.getElementById("modal-body").innerText = txt;
+         document.getElementById("userEmailInput").value = userName;
+         myModal.show()
+     }
+
+     function SubmitUserChange(e){
+        let email = e.dataset.userEmail;
+        $.ajax({
+        url: '?handler=SubmitUserChange&user='+email,
+        success: function (data) {
+             console.log(data);
+        },
+        error: function (error) {
+          console.log("Error: " + error);
+        }
+      })
+     }
+ </script>
