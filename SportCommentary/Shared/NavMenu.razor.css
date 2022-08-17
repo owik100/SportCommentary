@@ -31,7 +31,7 @@
         padding-bottom: 1rem;
     }
 
-    .nav-item ::deep a {
+    .nav-item ::deep a:not(.navLogin) {
         color: #d7d7d7;
         border-radius: 4px;
         height: 3rem;
@@ -59,4 +59,8 @@
         /* Never collapse the sidebar for wide screens */
         display: block;
     }
+}
+
+hr {
+    color: white;
 }

@@ -20,6 +20,7 @@ namespace SportCommentary.Areas.Identity.Pages.Account
         {
             _context = context;
             _userManager = userManager;
+            _logger = logger;
         }
 
         public class UsersViewModel
@@ -39,12 +40,14 @@ namespace SportCommentary.Areas.Identity.Pages.Account
             }).ToList();
 
         }
-        public async Task <IActionResult> OnPostAsync(string user)
+
+        [HttpPost]
+        public async Task <IActionResult> OnPostAsync(string user, string role)
         {
             IdentityResult result = new IdentityResult();
             try
             {
-                if (!string.IsNullOrEmpty(user))
+                if (!string.IsNullOrEmpty(user) && !string.IsNullOrEmpty(role))
                 {
                     var userFromManager = await _userManager.FindByEmailAsync(user);
                     if (userFromManager != null)
@@ -54,13 +57,36 @@ namespace SportCommentary.Areas.Identity.Pages.Account
                             return RedirectToAction("OnGetAsync", new { message = "Nie mo¿na zmieniæ uprawnieñ sobie samemu!" });
                         }
 
-                        if (!await _userManager.IsInRoleAsync(userFromManager, "Admin"))
+                        switch (role)
                         {
-                            result = await _userManager.AddToRoleAsync(userFromManager, "Admin");
-                        }
-                        else
-                        {
-                            result = await _userManager.RemoveFromRoleAsync(userFromManager, "Admin");
+                            case "giveAdmin":
+                                if (!await _userManager.IsInRoleAsync(userFromManager, "Admin"))
+                                {
+                                    result = await _userManager.AddToRoleAsync(userFromManager, "Admin");
+                                }
+                                break;
+                            case "undoAdmin":
+                                if (await _userManager.IsInRoleAsync(userFromManager, "Admin"))
+                                {
+                                    result = await _userManager.RemoveFromRoleAsync(userFromManager, "Admin");
+                                }
+                                break;
+                            case "giveCommentator":
+                                if (!await _userManager.IsInRoleAsync(userFromManager, "Commentator"))
+                                {
+                                    result = await _userManager.AddToRoleAsync(userFromManager, "Commentator");
+                                }
+                                break;
+                            case "undoCommentator":
+                                {
+                                    if (await _userManager.IsInRoleAsync(userFromManager, "Commentator"))
+                                    {
+                                        result = await _userManager.RemoveFromRoleAsync(userFromManager, "Commentator");
+                                    }
+                                }
+                                break;
+                            default:
+                                break;
                         }
                     }
 

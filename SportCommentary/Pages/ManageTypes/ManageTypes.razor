@@ -1,0 +1,40 @@
+﻿@page "/manageTypes"
+@attribute [Authorize(Roles = "Admin")]
+<h3 class="text-center">Zarządzaj typami</h3>
+
+@code {
+
+}
+<div class="container">   
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+  <div class="card">
+   <NavLink class="nav-link" href="manageSports"> 
+    <img class="card-img-top" src="https://upload.wikimedia.org/wikipedia/commons/0/0c/Sport_balls.svg" alt="Sports image">
+    <div class="card-body">
+      <h5 class="card-title text-center">Sporty</h5>
+       <p class="card-text">Zarządzaj typami sportów i dodawaj nowe sporty z których można prowadzić realcje.</p>
+    </div>
+      </NavLink>
+  </div>
+
+  <div class="card">
+       <NavLink class="nav-link" href="manageSports"> 
+    <img class="card-img-top" src="https://www.iconpacks.net/icons/1/free-red-card-icon-460-thumb.png" alt="Events image">
+    <div class="card-body">
+      <h5 class="card-title text-center">Wydarzenia</h5>
+      <p class="card-text">Zarządzaj wydarzeniami możliwymi do wystąpenia w wybranym sporcie (np. gol lub czerwona kartka).</p>
+    </div>
+    </NavLink>
+  </div>
+  <div class="card">
+      <NavLink class="nav-link" href="manageSports"> 
+    <img class="card-img-top" src="https://inzynierjakosci.pl/wp-content/uploads/2020/04/podcast-1.png" alt="Commentary image">
+    <div class="card-body">
+      <h5 class="card-title text-center">Relacje</h5>
+      <p class="card-text">Przeglądaj historię przeprowadzonych relacji sportowych.</p>
+    </div>
+        </NavLink>
+  </div>
+</div>
+</div>
+

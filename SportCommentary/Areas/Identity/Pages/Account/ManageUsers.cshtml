@@ -8,9 +8,9 @@
 
 @{
     if (ViewData["ManageMessage"] != null){
-        <div class="alert alert-danger" role="alert">
-            @ViewData["ManageMessage"]
-        </div>
+    <div class="alert alert-danger" role="alert">
+                                    @ViewData["ManageMessage"]
+    </div>
     }
 }
 
@@ -27,21 +27,35 @@
       @{
           foreach (var user in Model.AllUsers)
             {
-                                                        @:<tr>
-                                                               <td> @user.Username</td>
-                                                                <td>@user.Email</td>
-                                                                <td>@user.Role</td>
+                                                                                @:<tr>
+                                                                                       <td> @user.Username</td>
+                                                                                        <td>@user.Email</td>
+                                                                                        <td>@user.Role</td>
+                                                                                                 @:<td>
                         if(user.Role.Contains("Admin")){
-                                                                    <td>
-                                                                                   <button type="button" class="btn btn-warning" onclick="GiveRole('undo', '@user.Username');">Odbierz rolę Admin</button>
-                                                                   </td>
+                                                                   
+                                                      <button type="button" class="btn btn-warning" onclick="GiveRole('undoAdmin', '@user.Username');">Odbierz rolę Admin</button>
+                                                                 
                         }
                         else{
-                                                                    <td>
-                                                                                    <button type="button" class="btn btn-primary" onclick="GiveRole('give', '@user.Username');">Nadaj rolę Admin</button>
-                                                                   </td>
+                                                                    
+                                                       <button type="button" class="btn btn-primary" onclick="GiveRole('giveAdmin', '@user.Username');">Nadaj rolę Admin</button>
+                                                                  
                         }
-                                                          <tr/>
+                if (user.Role.Contains("Commentator"))
+                {
+
+                                                      <button type="button" class="btn btn-warning" onclick="GiveRole('undoCommentator', '@user.Username');">Odbierz rolę Komentator</button>
+
+                }
+                else
+                {
+
+                                                     <button type="button" class="btn btn-primary" onclick="GiveRole('giveCommentator', '@user.Username');">Nadaj rolę Komentator</button>
+
+                }
+                                                          <td/>
+                                                                                  <tr/>
             }
       }
   </tbody>
@@ -60,6 +74,7 @@
       <div class="modal-footer">
       <form method="post">
         <input id="userEmailInput" type="hidden" name="user" value="" />
+        <input id="roleType" type="hidden" name="role" value="" />
 
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
         <button type="submit" class="btn btn-primary" id="btnAccept">Potwierdź</button>
@@ -74,27 +89,24 @@
      function GiveRole(give, userName){
          let myModal = new bootstrap.Modal(document.getElementById('exampleModal'))
          let txt = "";
-         if((give == 'give')){
-              txt = `Czy na pewno chcesz nadać uprawnienia administratora użytkownikowi ${userName}?`;
-         }
-         else{
-             txt = `Czy na pewno chcesz odebrać uprawnienia administratora użytkownikowi ${userName}?`;
-         }
+        switch(give) {
+  case 'giveAdmin':
+    txt = `Czy na pewno chcesz nadać uprawnienia administratora użytkownikowi ${userName}?`;
+    break;
+  case 'undoAdmin':
+    txt = `Czy na pewno chcesz odebrać uprawnienia administratora użytkownikowi ${userName}?`;
+    break;
+     case 'giveCommentator':
+    txt = `Czy na pewno chcesz nadać uprawnienia komentatora użytkownikowi ${userName}?`;
+    break;
+     case 'undoCommentator':
+    txt = `Czy na pewno chcesz odebrać uprawnienia komentatora użytkownikowi ${userName}?`;
+    break;
+           
+    }
          document.getElementById("modal-body").innerText = txt;
          document.getElementById("userEmailInput").value = userName;
+         document.getElementById("roleType").value = give;
          myModal.show()
-     }
-
-     function SubmitUserChange(e){
-        let email = e.dataset.userEmail;
-        $.ajax({
-        url: '?handler=SubmitUserChange&user='+email,
-        success: function (data) {
-             console.log(data);
-        },
-        error: function (error) {
-          console.log("Error: " + error);
-        }
-      })
      }
  </script>

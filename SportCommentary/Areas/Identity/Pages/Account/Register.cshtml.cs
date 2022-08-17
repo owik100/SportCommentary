@@ -132,6 +132,7 @@ namespace SportCommentary.Areas.Identity.Pages.Account
                 if (result.Succeeded && _applicationDbContext.Users.Count() == 1)
                 {
                    await _userManager.AddToRoleAsync(user, "Admin");
+                   await _userManager.AddToRoleAsync(user, "Commentator");
                 }
 
                 if (result.Succeeded)
@@ -187,10 +188,17 @@ namespace SportCommentary.Areas.Identity.Pages.Account
         private async Task CreateRoles()
         {
             bool adminRoleExist = await _roleManager.RoleExistsAsync("Admin");
+            bool commentatorRoleExist = await _roleManager.RoleExistsAsync("Commentator");
             if (!adminRoleExist)
             { 
                 var role = new IdentityRole();
                 role.Name = "Admin";
+                await _roleManager.CreateAsync(role);
+            }
+            if (!commentatorRoleExist)
+            {
+                var role = new IdentityRole();
+                role.Name = "Commentator";
                 await _roleManager.CreateAsync(role);
             }
         }

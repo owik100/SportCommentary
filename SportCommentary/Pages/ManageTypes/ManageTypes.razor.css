@@ -1,0 +1,9 @@
+﻿.card-title {
+    border-top: 1px solid rgba(0,0,0,.125);
+    padding-top: 10px;
+    font-size: 1.8em;
+}
+
+.card{
+    cursor:pointer;
+}

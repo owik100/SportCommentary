@@ -1,12 +1,12 @@
 ﻿<AuthorizeView>
     <Authorized>
-        <a class="text-dark text-decoration-none" href="Identity/Account/Manage">Witaj, @context.User.Identity?.Name!</a>
+        <a class="nav-link text-decoration-none" href="Identity/Account/Manage">Witaj, @context.User.Identity?.Name!</a>
         <form method="post" action="Identity/Account/LogOut">
-            <button type="submit" class="btn btn-outline-dark ms-2">Wyloguj</button>
+            <button type="submit" class="btn btn-light ms-2 mt-2">Wyloguj</button>
         </form>
     </Authorized>
     <NotAuthorized>
-        <a role="button" class="btn btn-outline-dark" href="Identity/Account/Register">Rejestracja</a>
-        <a role="button" class="btn btn-outline-dark" href="Identity/Account/Login">Logowanie</a>
+        <a role="button" class="btn btn-light navLogin" href="Identity/Account/Register">Rejestracja</a>
+        <a role="button" class="btn btn-light navLogin" href="Identity/Account/Login">Logowanie</a>
     </NotAuthorized>
 </AuthorizeView>
