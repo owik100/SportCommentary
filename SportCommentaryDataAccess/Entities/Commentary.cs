@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SportCommentaryDataAccess.EFModels
+namespace SportCommentaryDataAccess.Entities
 {
     public class Commentary
     {
