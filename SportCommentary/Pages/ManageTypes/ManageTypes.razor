@@ -1,6 +1,11 @@
 ﻿@page "/manageTypes"
 @attribute [Authorize(Roles = "Admin")]
-<h3 class="text-center">Zarządzaj typami</h3>
+
+@{
+    var title = "Zarządzaj typami";
+}
+<PageTitle>@title</PageTitle>
+<h3 class="text-center">@title</h3>
 
 @code {
 

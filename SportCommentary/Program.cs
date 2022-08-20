@@ -6,6 +6,10 @@ using Microsoft.AspNetCore.Identity.UI;
 using Microsoft.EntityFrameworkCore;
 using SportCommentary.Areas.Identity;
 using SportCommentary.Data;
+using SportCommentary.Repository;
+using SportCommentary.Repository.Interfaces;
+using SportCommentary.Service;
+using SportCommentary.Service.Interfaces;
 using System;
 using System.Security.Claims;
 
@@ -35,6 +39,9 @@ builder.Services.AddRazorPages().AddRazorRuntimeCompilation();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
 builder.Services.AddSingleton<WeatherForecastService>();
+
+builder.Services.AddScoped<ISportTypeRepository, SportTypeRepository>();
+builder.Services.AddScoped<ISportTypeService, SportTypeService>();
 
 builder.Logging.AddLog4Net();
 
