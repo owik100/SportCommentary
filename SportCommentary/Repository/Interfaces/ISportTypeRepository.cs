@@ -40,6 +40,6 @@ namespace SportCommentary.Repository.Interfaces
         /// </summary>
         /// <param name="sportType"></param>
         /// <returns></returns>
-        Task<bool> DeleteCompanyAsync(SportType sportType);
+        Task<bool> DeleteSportTypeAsync(SportType sportType);
     }
 }

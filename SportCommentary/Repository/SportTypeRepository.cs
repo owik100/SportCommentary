@@ -32,7 +32,7 @@ namespace SportCommentary.Repository
             return await Save();
         }
 
-        public async Task<bool> DeleteCompanyAsync(SportType sportType)
+        public async Task<bool> DeleteSportTypeAsync(SportType sportType)
         {
             _dataContext.Remove(sportType);
             return await Save();
