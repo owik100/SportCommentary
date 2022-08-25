@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using SportCommentaryDataAccess.DTO;
 using SportCommentaryDataAccess.DTO.SportType;
 using SportCommentaryDataAccess.Entities;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
@@ -9,8 +10,10 @@ namespace SportCommentary.Mapper
     {
         public DtoMapping()
         {
-            CreateMap<SportType, SportTypeDTO>().ReverseMap();
-            CreateMap<CreateSportTypeDTO, SportTypeDTO>().ReverseMap();
+            CreateMap<CreateSportTypeDTO, SportType>();
+            CreateMap<SportType, SportTypeDTO>();
+
+            CreateMap<SportTypeDTO, SportType>();
             CreateMap<UpdateSportTypeDTO, SportTypeDTO>().ReverseMap();
         }
     }

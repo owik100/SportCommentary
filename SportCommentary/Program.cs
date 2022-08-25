@@ -1,3 +1,4 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
@@ -10,6 +11,8 @@ using SportCommentary.Repository;
 using SportCommentary.Repository.Interfaces;
 using SportCommentary.Service;
 using SportCommentary.Service.Interfaces;
+using SportCommentaryDataAccess.DTO.SportType;
+using SportCommentaryDataAccess.Entities;
 using System;
 using System.Security.Claims;
 
@@ -31,9 +34,10 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 }
     ).AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
-     
+
 
 // Add services to the container.
+builder.Services.AddAutoMapper(typeof(Program).Assembly);
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddRazorPages().AddRazorRuntimeCompilation();
 builder.Services.AddServerSideBlazor();
@@ -60,7 +64,7 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.SignIn.RequireConfirmedAccount = false;
 });
 
-builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
 
 var app = builder.Build();
 

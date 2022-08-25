@@ -9,8 +9,10 @@ namespace SportCommentaryDataAccess.DTO.SportType
 {
     public class CreateSportTypeDTO
     {
+        [Display(Name = "Nazwa sportu")]
         [Required(ErrorMessage = "{0} jest wymagana.")]
-        [StringLength(150, ErrorMessage = " {0} musi być co najmniej {2} i maksymalnie {1} długa.", MinimumLength = 2)]
+        [MinLength(2, ErrorMessage = "{0} musi mieć co najmniej {1} znaki.")]
+        [MaxLength(100, ErrorMessage = "{0} musi mieć maksymalnie {1} znaków.")]
         public string Name { get; set; }
     }
 }

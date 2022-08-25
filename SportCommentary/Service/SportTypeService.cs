@@ -2,6 +2,7 @@
 using SportCommentary.Repository.Interfaces;
 using SportCommentary.Service.Interfaces;
 using SportCommentaryDataAccess;
+using SportCommentaryDataAccess.DTO;
 using SportCommentaryDataAccess.DTO.SportType;
 using SportCommentaryDataAccess.Entities;
 
@@ -29,9 +30,8 @@ namespace SportCommentary.Service
                     return response;
                 }
 
-                SportType newSportType = _mapper.Map<SportType>(createSportTypeDTO);
+                var newSportType = _mapper.Map<SportType>(createSportTypeDTO);
 
-                //Add new record
                 if (!await _sportTypeRepo.CreateSportTypeAsync(newSportType))
                 {
                     response.Error = "Błąd przy dodawaniu sportu";
@@ -40,7 +40,6 @@ namespace SportCommentary.Service
                     return response;
                 }
 
-                //Sprawdzic czy newSportType ma id po dodaniu
                 response.Success = true;
                 response.Data = _mapper.Map<SportTypeDTO>(newSportType);
                 response.Message = "Created";
