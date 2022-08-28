@@ -34,7 +34,7 @@ namespace SportCommentary.Service
 
                 if (!await _sportTypeRepo.CreateSportTypeAsync(newSportType))
                 {
-                    response.Error = "Błąd przy dodawaniu sportu";
+                    response.Message = "Błąd przy dodawaniu sportu";
                     response.Success = false;
                     response.Data = null;
                     return response;

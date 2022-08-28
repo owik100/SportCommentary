@@ -2,6 +2,7 @@
 @attribute [Authorize(Roles = "Admin")]
 
 @using SportCommentary.Service.Interfaces
+@using SportCommentaryDataAccess
 @using SportCommentaryDataAccess.DTO.SportType
 @using SportCommentaryDataAccess.Entities
 
@@ -17,7 +18,7 @@
 
 @if (error)
 {
-      <p>@errorMessage</p>  
+      <p style="color:red">@errorMessage</p>  
 }
 else if (sportTypes == null)
 {
@@ -31,6 +32,7 @@ else
                 <tr>
                     <th style="width:10%;">Lp.</th>
                     <th>Nazwa</th>
+                    <th>Akcja</th>
                 </tr>
             </thead>
             <tbody class="table-group-divider">
@@ -40,6 +42,9 @@ else
                 <tr>
                      <td>@counter</td>
                      <td>@sportType.Name</td>
+                             <td><button class="btn btn-danger" @onclick="(()=> HandleDelete(sportType.SportTypeID))"><i class="fa-solid fa-trash"></i> Usuń</button>
+
+                </td>
                 </tr>
             }
             </tbody>
@@ -69,27 +74,52 @@ else
     private CreateSportTypeDTO createSportTypeModel = new();
     private bool formHidden = true;
     private bool isInvalid = false;
-    private EditContext editContext;
 
     protected override async Task OnInitializedAsync()
     {
-        var getAllResponse = await _sportTypeService.GetAllSportTypesAsync();
-        if (!getAllResponse.Success){
-            error = true;
-            errorMessage = getAllResponse.Message;
-        }
-        else{
-            sportTypes = getAllResponse.Data;
-        }
+        await GetSportTypes();
+    }
 
+
+    private async Task GetSportTypes(){
+        var getAllResponse = await _sportTypeService.GetAllSportTypesAsync();
+        if (getAllResponse.Success)
+        {
+            error = false;
+            sportTypes = getAllResponse.Data;
+            return;
+        }
+        HandleBadResult(getAllResponse.Message); 
+    }
+
+    private void HandleBadResult(string errMsg){
+        error = true;
+        errorMessage = errMsg;
     }
 
     private async Task HandleValidSubmit()
     {
-        await _sportTypeService.AddSportTypeAsync(createSportTypeModel);
+        var submitRes = await _sportTypeService.AddSportTypeAsync(createSportTypeModel);
+        if(submitRes.Success){
+           await GetSportTypes();
+           return;
+        }
+        HandleBadResult(submitRes.Message);
     }
 
     private void ShowForm(){
         formHidden = false;
+    }
+
+
+    private async Task HandleDelete(int Id)
+    {
+        var deleteRes = await _sportTypeService.DeleteSportType(Id);
+        if (deleteRes.Success)
+        {
+            await GetSportTypes();
+            return;
+        }
+        HandleBadResult(deleteRes.Message);
     }
 }
