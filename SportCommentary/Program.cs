@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI;
 using Microsoft.EntityFrameworkCore;
+using MudBlazor.Services;
 using SportCommentary.Areas.Identity;
 using SportCommentary.Data;
 using SportCommentary.Repository;
@@ -64,7 +65,7 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.SignIn.RequireConfirmedAccount = false;
 });
 
-
+builder.Services.AddMudServices();
 
 var app = builder.Build();
 
