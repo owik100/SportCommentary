@@ -3,7 +3,7 @@ h1:focus {
 }
 
 a:hover {
-    color: inherit;
+    color: var(--mud-palette-primary);
 }
 
 #blazor-error-ui {
