@@ -1,0 +1,7 @@
+﻿form {
+    margin-top: -15px;
+}
+
+::deep .btnLogout{
+    margin-left:25px !important;
+}

@@ -1,19 +1,45 @@
 ﻿@inherits LayoutComponentBase
 
-<PageTitle>SportCommentary</PageTitle>
+<PageTitle>Sport Commentary</PageTitle>
 
-<MudThemeProvider/>
+<MudThemeProvider Theme="MyCustomTheme" />
 <MudDialogProvider/>
 <MudSnackbarProvider/>
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+<MudLayout>
+    <MudAppBar >
+        <MudIconButton Size="Size.Medium" Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+        <MudText Typo="Typo.h5">Sport Commentary <i class="ml-2 fa-solid fa-volleyball"></i></MudText>
+    </MudAppBar>
+    <MudDrawer @bind-Open="@_drawerOpen" ClipMode="DrawerClipMode.Always">
+        <NavMenu/>
+    </MudDrawer>
+    <MudMainContent Class="mt-3 pl-3">
+        @Body
+    </MudMainContent>
+</MudLayout>
+@code {
+    bool _drawerOpen = true;
 
-    <main>
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>
+    void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+
+    MudTheme MyCustomTheme = new MudTheme()
+        {
+            Palette = new Palette()
+            {
+                Primary = Colors.Red.Darken2,
+                Secondary = Colors.Grey.Default,
+                AppbarBackground = Colors.Grey.Darken2,
+                Background = Colors.Grey.Lighten4,
+                DrawerBackground = Colors.Grey.Lighten3,
+                
+            },
+            PaletteDark = new Palette()
+            {
+                Primary = Colors.Blue.Lighten3
+            },
+        };
+}
