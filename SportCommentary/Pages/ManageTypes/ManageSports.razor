@@ -13,59 +13,69 @@
     int counter = 0;
 }
 <PageTitle>@title</PageTitle>
-<h3 class="text-center">@title</h3>
+<MudText Align="Align.Center" Typo="Typo.h4">@title</MudText>
+<br/>
 
 
 @if (error)
 {
-      <p style="color:red">@errorMessage</p>  
+          <p style="color:red">@errorMessage</p>  
 }
 else if (sportTypes == null)
 {
-        <p><em>Wczytywanie...</em></p>
+            <p><em>Wczytywanie...</em></p>
 }
 else
 {
-        <button class="btn btn-primary mt-3" @onclick="ShowForm"><i class="fa-solid fa-plus"></i> Dodaj nowy</button>
-        <table class="table mt-4">
-            <thead>
-                <tr>
-                    <th style="width:10%;">Lp.</th>
-                    <th>Nazwa</th>
-                    <th>Akcja</th>
-                </tr>
-            </thead>
-            <tbody class="table-group-divider">
-            @foreach (var sportType in sportTypes)
-            {
-                counter++;
-                <tr>
-                     <td>@counter</td>
-                     <td>@sportType.Name</td>
-                             <td><button class="btn btn-danger" @onclick="(()=> HandleDelete(sportType.SportTypeID))"><i class="fa-solid fa-trash"></i> Usuń</button>
+        <MudContainer Fixed="true">
+        @if (formHidden)
+        {
+            <MudFab Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" @onclick="ToggleForm" Label="Dodaj nowy" />
+        }
+        else
+        {
+             <EditForm id="addForm" Model="createSportTypeModel" OnValidSubmit="@HandleValidSubmit">
+                       <DataAnnotationsValidator />
+               <MudCard>
+                   <MudCardContent>
+                       <MudTextField Label="Nazwa sportu" @bind-Value="createSportTypeModel.Name" For="@(() => createSportTypeModel.Name)"/>
+                   </MudCardContent>
+                   <MudCardActions>
+                       <MudFab Class="mr-4" ButtonType="ButtonType.Submit" StartIcon="@Icons.Material.Filled.Save" Variant="Variant.Filled" Color="Color.Primary" Label="Zapisz"/>
+                       <MudFab Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Cancel" @onclick="ToggleForm" Label="Anuluj" />
+                   </MudCardActions>
+               </MudCard>
+             </EditForm>
+        }
+                <table class="table mt-4">
+                    <thead>
+                        <tr>
+                            <th style="width:10%;">Lp.</th>
+                            <th>Nazwa</th>
+                            <th>Akcja</th>
+                        </tr>
+                    </thead>
+                    <tbody class="table-group-divider">
+                @foreach (var sportType in sportTypes)
+                {
+                    counter++;
+                                <tr>
+                                     <td>@counter</td>
+                                     <td>@sportType.Name</td>
+                                             <td><button class="btn btn-danger" @onclick="(()=> HandleDelete(sportType.SportTypeID))"><i class="fa-solid fa-trash"></i> Usuń</button>
 
-                </td>
-                </tr>
-            }
-            </tbody>
-        </table>
-    @if (counter == 0)
-    {
-        <h4 hidden=@(!formHidden)  class="text-center">Brak sportów. Dodaj jakiś!</h4>
-    }
+                                </td>
+                                </tr>
+                }
+                    </tbody>
+                </table>
+        @if (counter == 0)
+        {
+                        <h4 hidden=@(!formHidden)  class="text-center">Brak sportów. Dodaj jakiś!</h4>
+        }
+        </MudContainer>
+
 }
-
-<EditForm id="addForm" Model="createSportTypeModel" hidden=@formHidden OnValidSubmit="@HandleValidSubmit">
-     <DataAnnotationsValidator />
-     @*<ValidationSummary />*@
-
-   
-    <label for="name">Nazwa sportu</label>
-        <InputText id="name" @bind-Value="createSportTypeModel.Name"/>
-        &nbsp;<ValidationMessage For="@(() => createSportTypeModel.Name)" />
-    <button type="submit" class="btn btn-primary">Zapisz</button>
-</EditForm>
-
 @code {
     private List<SportTypeDTO>? sportTypes;
     private bool error = false;
@@ -81,7 +91,8 @@ else
     }
 
 
-    private async Task GetSportTypes(){
+    private async Task GetSportTypes()
+    {
         var getAllResponse = await _sportTypeService.GetAllSportTypesAsync();
         if (getAllResponse.Success)
         {
@@ -89,26 +100,33 @@ else
             sportTypes = getAllResponse.Data;
             return;
         }
-        HandleBadResult(getAllResponse.Message); 
+        HandleBadResult(getAllResponse.Message);
     }
 
-    private void HandleBadResult(string errMsg){
+    private void HandleBadResult(string errMsg)
+    {
         error = true;
         errorMessage = errMsg;
     }
 
     private async Task HandleValidSubmit()
     {
+        ToggleForm();
         var submitRes = await _sportTypeService.AddSportTypeAsync(createSportTypeModel);
-        if(submitRes.Success){
-           await GetSportTypes();
-           return;
+        if (submitRes.Success)
+        {
+            await GetSportTypes();
+            return;
         }
         HandleBadResult(submitRes.Message);
     }
 
-    private void ShowForm(){
-        formHidden = false;
+    private void ToggleForm()
+    {
+        formHidden = !formHidden;
+        if(!formHidden){
+            createSportTypeModel = new();
+        }
     }
 
 
