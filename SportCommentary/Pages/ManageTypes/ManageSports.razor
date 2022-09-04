@@ -7,6 +7,7 @@
 @using SportCommentaryDataAccess.Entities
 
 @inject ISportTypeService _sportTypeService
+@inject ISnackbar Snackbar
 
 @{
     var title = "Zarządzaj sportami";
@@ -15,26 +16,28 @@
 <PageTitle>@title</PageTitle>
 <MudText Align="Align.Center" Typo="Typo.h4">@title</MudText>
 <br/>
-
-
-@if (error)
+<SportCommentary.Components.DownladDataError ErrorMessage=@errorMessage RefreshPage="/manageSports"/>
+<SportCommentary.Components.DummyComponent/>
+  <MudProgressCircular Class="align-center" Color="Color.Primary" Indeterminate="true"/>
+ 
+@if (downloadDataError)
 {
-          <p style="color:red">@errorMessage</p>  
+        <DownladDataError ErrorMessage="@errorMessage" RefreshPage="/manageSports"/>
 }
 else if (sportTypes == null)
 {
-            <p><em>Wczytywanie...</em></p>
+           <MudProgressCircular Color="Color.Primary" Indeterminate="true"/>
 }
 else
 {
         <MudContainer Fixed="true">
         @if (formHidden)
         {
-            <MudFab Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" @onclick="ToggleForm" Label="Dodaj nowy" />
+            <MudFab Color="Color.Primary" Class="mb-4" StartIcon="@Icons.Material.Filled.Add" @onclick="ToggleForm" Label="Dodaj nowy" />
         }
         else
         {
-             <EditForm id="addForm" Model="createSportTypeModel" OnValidSubmit="@HandleValidSubmit">
+             <EditForm Class="mb-4" id="addForm" Model="createSportTypeModel" OnValidSubmit="@HandleValidSubmit">
                        <DataAnnotationsValidator />
                <MudCard>
                    <MudCardContent>
@@ -47,7 +50,29 @@ else
                </MudCard>
              </EditForm>
         }
-                <table class="table mt-4">
+
+                    <MudTable Striped Items="@sportTypes" Hover="true" Breakpoint="Breakpoint.Xs"  Loading="@(sportTypes == null)" LoadingProgressColor="Color.Info">
+             <ColGroup>
+                 <col style="width: 5%" />
+                  <col />
+                <col style="width: 250px" />
+                </ColGroup>
+        <HeaderContent>
+            <MudTh>Lp.</MudTh>
+            <MudTh>Nazwa</MudTh>
+            <MudTh>Akcje</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Lp.">@(++counter)</MudTd>
+            <MudTd DataLabel="Nazwa">@context.Name</MudTd>
+            <MudTd DataLabel="Akcje">
+                <MudButton class="mr-2" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Edit" Color="Color.Secondary">Edytuj</MudButton>
+                <MudButton Variant="Variant.Filled" @onclick="(()=> HandleDelete(context.SportTypeID))" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error">Usuń</MudButton>
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+
+       @*         <table class="table mt-4">
                     <thead>
                         <tr>
                             <th style="width:10%;">Lp.</th>
@@ -68,17 +93,17 @@ else
                                 </tr>
                 }
                     </tbody>
-                </table>
-        @if (counter == 0)
+                </table>*@
+        @if (sportTypes?.Count == 0)
         {
-                        <h4 hidden=@(!formHidden)  class="text-center">Brak sportów. Dodaj jakiś!</h4>
+            <MudText Class="mt-3" hidden=@(!formHidden) Align="Align.Center" Typo="Typo.h4">Brak sportów. Dodaj jakiś!</MudText>
         }
         </MudContainer>
 
 }
 @code {
     private List<SportTypeDTO>? sportTypes;
-    private bool error = false;
+    private bool downloadDataError = false;
     private string errorMessage = "";
 
     private CreateSportTypeDTO createSportTypeModel = new();
@@ -96,17 +121,24 @@ else
         var getAllResponse = await _sportTypeService.GetAllSportTypesAsync();
         if (getAllResponse.Success)
         {
-            error = false;
+            downloadDataError = false;
+            errorMessage = "";
             sportTypes = getAllResponse.Data;
             return;
         }
-        HandleBadResult(getAllResponse.Message);
+        HandleBadResult(getAllResponse.Message, true);
     }
 
-    private void HandleBadResult(string errMsg)
+    private void HandleBadResult(string errMsg, bool downloadDataErrorP)
     {
-        error = true;
-        errorMessage = errMsg;
+        if (downloadDataErrorP)
+        {
+            errorMessage = errMsg;
+            downloadDataError = true;
+        }
+        else{
+            Snackbar.Add(errMsg, Severity.Error);
+        }
     }
 
     private async Task HandleValidSubmit()
@@ -116,9 +148,10 @@ else
         if (submitRes.Success)
         {
             await GetSportTypes();
+            Snackbar.Add("Sport został dodany", Severity.Success);
             return;
         }
-        HandleBadResult(submitRes.Message);
+        HandleBadResult(submitRes.Message, false);
     }
 
     private void ToggleForm()
@@ -136,8 +169,9 @@ else
         if (deleteRes.Success)
         {
             await GetSportTypes();
+            Snackbar.Add("Sport został usunięty", Severity.Success);
             return;
         }
-        HandleBadResult(deleteRes.Message);
+        HandleBadResult(deleteRes.Message, false);
     }
 }

@@ -4,7 +4,9 @@
        <MudDivider class="divider"/>
     </div>
     <MudNavLink Icon="@Icons.Filled.Home" Href="/" Match="NavLinkMatch.All">Strona główna</MudNavLink>
-    <MudNavLink Icon="@Icons.Filled.Settings"  Href="/manageTypes" Match="NavLinkMatch.Prefix">Zarządzaj typami</MudNavLink>
+     <AuthorizeView Roles="Admin">
+         <MudNavLink Icon="@Icons.Filled.Settings"  Href="/manageTypes" Match="NavLinkMatch.Prefix">Zarządzaj typami</MudNavLink>
+     </AuthorizeView>
     <MudNavLink Icon="@Icons.Filled.PlusOne" Href="/counter"  Match="NavLinkMatch.Prefix">Counter</MudNavLink>
     <MudNavLink Icon="@Icons.Filled.DataArray" Href="/fetchdata"  Match="NavLinkMatch.Prefix">Fetch data</MudNavLink>
 </MudNavMenu>

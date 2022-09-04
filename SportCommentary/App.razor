@@ -3,7 +3,7 @@
         <Found Context="routeData">
             <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
                  <NotAuthorized>
-                    <h1 class="text-center">Brak uprawnień!</h1>
+                   <MudAlert Class="mr-3 ml-3" Severity="Severity.Warning" Variant="Variant.Filled">Brak uprawnień!</MudAlert>
                 </NotAuthorized>
             </AuthorizeRouteView>
             <FocusOnNavigate RouteData="@routeData" Selector="h1" />
