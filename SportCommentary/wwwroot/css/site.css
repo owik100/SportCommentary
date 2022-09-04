@@ -34,3 +34,7 @@ a:hover {
     .blazor-error-boundary::after {
         content: "An error has occurred."
     }
+
+.d-none{
+    display:none;
+}

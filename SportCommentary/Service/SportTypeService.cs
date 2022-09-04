@@ -171,8 +171,7 @@ namespace SportCommentary.Service
                     return _response;
 
                 }
-
-                _existingSportType = _mapper.Map<SportType>(updateSportTypeDTO);
+                _mapper.Map(updateSportTypeDTO, _existingSportType);
 
                 if (!await _sportTypeRepo.UpdateSportTypeAsync(_existingSportType))
                 {

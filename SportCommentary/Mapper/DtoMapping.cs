@@ -12,9 +12,8 @@ namespace SportCommentary.Mapper
         {
             CreateMap<CreateSportTypeDTO, SportType>();
             CreateMap<SportType, SportTypeDTO>();
-
-            CreateMap<SportTypeDTO, SportType>();
-            CreateMap<UpdateSportTypeDTO, SportTypeDTO>().ReverseMap();
+            CreateMap<UpdateSportTypeDTO, SportType>();
+            CreateMap<SportTypeDTO, UpdateSportTypeDTO>();
         }
     }
 }

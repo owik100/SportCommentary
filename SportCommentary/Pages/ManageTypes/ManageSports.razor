@@ -31,32 +31,34 @@ else if (sportTypes == null)
 else
 {
         <MudContainer Fixed="true">
-        @if (addNewformHidden)
+        @if (addNewformHidden && editformHidden)
         {
                     <MudFab Color="Color.Primary" Class="mb-4" StartIcon="@Icons.Material.Filled.Add" @onclick="(()=>ToggleForm(false))" Label="Dodaj nowy" />
         }
         @if (!editformHidden){
-            <h1>Edytuj</h1>
-             <EditForm Class="mb-4" id="editForm" Model="updateSportTypeModel" OnValidSubmit="@HandleValidSubmit">
+             <EditForm Class="mb-4" id="editForm" Model="updateSportTypeModel" OnValidSubmit="@HandleValidEditSubmit">
                        <DataAnnotationsValidator />
                <MudCard>
+               
                    <MudCardContent>
+                    <MudText Typo="Typo.h6">Edytuj</MudText>
                        <MudTextField Label="Nazwa sportu" @bind-Value="updateSportTypeModel.Name" For="@(() => updateSportTypeModel.Name)"/>
-                       <MudTextField Label="SportID" @bind-Value="updateSportTypeModel.SportTypeID" For="@(() => updateSportTypeModel.SportTypeID)"/>
+                       <MudTextField Class="d-none" Label="SportID" @bind-Value="updateSportTypeModel.SportTypeID" For="@(() => updateSportTypeModel.SportTypeID)"/>
                    </MudCardContent>
                    <MudCardActions>
                        <MudFab Class="mr-4" ButtonType="ButtonType.Submit" StartIcon="@Icons.Material.Filled.Save" Variant="Variant.Filled" Color="Color.Primary" Label="Zapisz"/>
-                               <MudFab Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Cancel" @onclick="(()=>ToggleForm(false))" Label="Anuluj" />
+                               <MudFab Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Cancel" @onclick="(()=>ToggleForm(true))" Label="Anuluj" />
                    </MudCardActions>
                </MudCard>
              </EditForm>
         }
-        else
+        @if (!addNewformHidden)
         {
              <EditForm Class="mb-4" id="addForm" Model="createSportTypeModel" OnValidSubmit="@HandleValidSubmit">
                        <DataAnnotationsValidator />
                <MudCard>
                    <MudCardContent>
+                        <MudText Typo="Typo.h6">Dodaj</MudText>
                        <MudTextField Label="Nazwa sportu" @bind-Value="createSportTypeModel.Name" For="@(() => createSportTypeModel.Name)"/>
                    </MudCardContent>
                    <MudCardActions>
@@ -67,7 +69,12 @@ else
              </EditForm>
         }
 
-     <MudTable Striped Items="@sportTypes" Hover="true" Breakpoint="Breakpoint.Xs"  Loading="@(sportTypes == null)" LoadingProgressColor="Color.Info">
+         <MudTable Striped Items="@sportTypes" Hover="true" Breakpoint="Breakpoint.Xs"  Loading="@(sportTypes == null)" LoadingProgressColor="Color.Info" Filter="new Func<SportTypeDTO ,bool>(FilterFunc1)">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">Sporty</MudText>
+            <MudSpacer />
+                <MudTextField @bind-Value="searchString1" Immediate="true" Placeholder="Szukaj" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+        </ToolBarContent>
              <ColGroup>
                  <col style="width: 5%" />
                   <col />
@@ -107,6 +114,8 @@ else
     private bool isInvalid = false;
     private int? GetRowNumber(object element) =>
         sportTypes?.TakeWhile(x => x != element).Count() + 1;
+
+    private string searchString1 = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -210,4 +219,29 @@ else
         HandleBadResult(getModel.Message, false);
         ToggleForm(true);
     }
+
+    private async Task HandleValidEditSubmit()
+    {
+        ToggleForm(true);
+        var submitRes = await _sportTypeService.UpdateSportTypeAsync(updateSportTypeModel);
+        if (submitRes.Success)
+        {
+            await GetSportTypes();
+            Snackbar.Add("Sport został zaaktualizowany", Severity.Success);
+            return;
+        }
+        HandleBadResult(submitRes.Message, false);
+    }
+
+    private bool FilterFunc1(SportTypeDTO element) => FilterFunc(element, searchString1);
+
+    private bool FilterFunc(SportTypeDTO element, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (element.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
+    }
+
 }
