@@ -1,39 +1,55 @@
 ﻿@page "/manageSports"
 @attribute [Authorize(Roles = "Admin")]
 
+@using AutoMapper
 @using SportCommentary.Service.Interfaces
 @using SportCommentaryDataAccess
 @using SportCommentaryDataAccess.DTO.SportType
 @using SportCommentaryDataAccess.Entities
+@using SportCommentary.Components
 
 @inject ISportTypeService _sportTypeService
 @inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject IMapper _mapper
 
 @{
     var title = "Zarządzaj sportami";
-    int counter = 0;
 }
-<PageTitle>@title</PageTitle>
-<MudText Align="Align.Center" Typo="Typo.h4">@title</MudText>
-<br/>
-<SportCommentary.Components.DownladDataError ErrorMessage=@errorMessage RefreshPage="/manageSports"/>
-<SportCommentary.Components.DummyComponent/>
-  <MudProgressCircular Class="align-center" Color="Color.Primary" Indeterminate="true"/>
- 
+<PageHeaderTitle Title="@title"/>
+
 @if (downloadDataError)
 {
         <DownladDataError ErrorMessage="@errorMessage" RefreshPage="/manageSports"/>
 }
 else if (sportTypes == null)
 {
-           <MudProgressCircular Color="Color.Primary" Indeterminate="true"/>
+        <MudContainer Class="d-flex justify-center">
+            <MudProgressCircular  Color="Color.Primary" Indeterminate="true"/> 
+        </MudContainer>
 }
 else
 {
         <MudContainer Fixed="true">
-        @if (formHidden)
+        @if (addNewformHidden)
         {
-            <MudFab Color="Color.Primary" Class="mb-4" StartIcon="@Icons.Material.Filled.Add" @onclick="ToggleForm" Label="Dodaj nowy" />
+                    <MudFab Color="Color.Primary" Class="mb-4" StartIcon="@Icons.Material.Filled.Add" @onclick="(()=>ToggleForm(false))" Label="Dodaj nowy" />
+        }
+        @if (!editformHidden){
+            <h1>Edytuj</h1>
+             <EditForm Class="mb-4" id="editForm" Model="updateSportTypeModel" OnValidSubmit="@HandleValidSubmit">
+                       <DataAnnotationsValidator />
+               <MudCard>
+                   <MudCardContent>
+                       <MudTextField Label="Nazwa sportu" @bind-Value="updateSportTypeModel.Name" For="@(() => updateSportTypeModel.Name)"/>
+                       <MudTextField Label="SportID" @bind-Value="updateSportTypeModel.SportTypeID" For="@(() => updateSportTypeModel.SportTypeID)"/>
+                   </MudCardContent>
+                   <MudCardActions>
+                       <MudFab Class="mr-4" ButtonType="ButtonType.Submit" StartIcon="@Icons.Material.Filled.Save" Variant="Variant.Filled" Color="Color.Primary" Label="Zapisz"/>
+                               <MudFab Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Cancel" @onclick="(()=>ToggleForm(false))" Label="Anuluj" />
+                   </MudCardActions>
+               </MudCard>
+             </EditForm>
         }
         else
         {
@@ -45,13 +61,13 @@ else
                    </MudCardContent>
                    <MudCardActions>
                        <MudFab Class="mr-4" ButtonType="ButtonType.Submit" StartIcon="@Icons.Material.Filled.Save" Variant="Variant.Filled" Color="Color.Primary" Label="Zapisz"/>
-                       <MudFab Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Cancel" @onclick="ToggleForm" Label="Anuluj" />
+                               <MudFab Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Cancel" @onclick="(()=>ToggleForm(false))" Label="Anuluj" />
                    </MudCardActions>
                </MudCard>
              </EditForm>
         }
 
-                    <MudTable Striped Items="@sportTypes" Hover="true" Breakpoint="Breakpoint.Xs"  Loading="@(sportTypes == null)" LoadingProgressColor="Color.Info">
+     <MudTable Striped Items="@sportTypes" Hover="true" Breakpoint="Breakpoint.Xs"  Loading="@(sportTypes == null)" LoadingProgressColor="Color.Info">
              <ColGroup>
                  <col style="width: 5%" />
                   <col />
@@ -63,40 +79,18 @@ else
             <MudTh>Akcje</MudTh>
         </HeaderContent>
         <RowTemplate>
-            <MudTd DataLabel="Lp.">@(++counter)</MudTd>
+            <MudTd DataLabel="Lp.">@(GetRowNumber(context))</MudTd>
             <MudTd DataLabel="Nazwa">@context.Name</MudTd>
             <MudTd DataLabel="Akcje">
-                <MudButton class="mr-2" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Edit" Color="Color.Secondary">Edytuj</MudButton>
-                <MudButton Variant="Variant.Filled" @onclick="(()=> HandleDelete(context.SportTypeID))" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error">Usuń</MudButton>
+               <MudButton class="mr-2" Variant="Variant.Filled" @onclick="(()=>EditSport(context.SportTypeID))" StartIcon="@Icons.Material.Filled.Edit" Color="Color.Secondary">Edytuj</MudButton>
+               <MudButton Variant="Variant.Filled" @onclick="(()=> DeleteDialog(context.SportTypeID))" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error">Usuń</MudButton>
             </MudTd>
         </RowTemplate>
     </MudTable>
 
-       @*         <table class="table mt-4">
-                    <thead>
-                        <tr>
-                            <th style="width:10%;">Lp.</th>
-                            <th>Nazwa</th>
-                            <th>Akcja</th>
-                        </tr>
-                    </thead>
-                    <tbody class="table-group-divider">
-                @foreach (var sportType in sportTypes)
-                {
-                    counter++;
-                                <tr>
-                                     <td>@counter</td>
-                                     <td>@sportType.Name</td>
-                                             <td><button class="btn btn-danger" @onclick="(()=> HandleDelete(sportType.SportTypeID))"><i class="fa-solid fa-trash"></i> Usuń</button>
-
-                                </td>
-                                </tr>
-                }
-                    </tbody>
-                </table>*@
         @if (sportTypes?.Count == 0)
         {
-            <MudText Class="mt-3" hidden=@(!formHidden) Align="Align.Center" Typo="Typo.h4">Brak sportów. Dodaj jakiś!</MudText>
+            <MudText Class="mt-3" hidden=@(!addNewformHidden) Align="Align.Center" Typo="Typo.h4">Brak sportów. Dodaj jakiś!</MudText>
         }
         </MudContainer>
 
@@ -107,8 +101,12 @@ else
     private string errorMessage = "";
 
     private CreateSportTypeDTO createSportTypeModel = new();
-    private bool formHidden = true;
+    private UpdateSportTypeDTO updateSportTypeModel = new();
+    private bool addNewformHidden = true;
+    private bool editformHidden = true;
     private bool isInvalid = false;
+    private int? GetRowNumber(object element) =>
+        sportTypes?.TakeWhile(x => x != element).Count() + 1;
 
     protected override async Task OnInitializedAsync()
     {
@@ -143,7 +141,7 @@ else
 
     private async Task HandleValidSubmit()
     {
-        ToggleForm();
+        ToggleForm(false);
         var submitRes = await _sportTypeService.AddSportTypeAsync(createSportTypeModel);
         if (submitRes.Success)
         {
@@ -154,14 +152,39 @@ else
         HandleBadResult(submitRes.Message, false);
     }
 
-    private void ToggleForm()
+    private void ToggleForm(bool editForm)
     {
-        formHidden = !formHidden;
-        if(!formHidden){
-            createSportTypeModel = new();
+        if(editForm){
+            editformHidden = !editformHidden;
+            addNewformHidden = true;
         }
+        else{
+            addNewformHidden = !addNewformHidden;
+            editformHidden = true;
+            if (!addNewformHidden)
+            {
+                createSportTypeModel = new();
+            }
+        }
+
     }
 
+    private async Task DeleteDialog(int Id)
+    {
+        var parameters = new DialogParameters();
+        parameters.Add("ContentText", "Czy na pewno chcesz usunąć ten sport? Tej operacji nie można cofnąć!.");
+        parameters.Add("ButtonText", "Usuń");
+        parameters.Add("Color", Color.Error);
+
+        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+
+        var dialog = DialogService.Show<DialogTemplate>("Usuń sport", parameters, options);
+        var result = await dialog.Result;
+        if(!result.Cancelled){
+            await HandleDelete(Id);
+        }
+
+    }
 
     private async Task HandleDelete(int Id)
     {
@@ -173,5 +196,18 @@ else
             return;
         }
         HandleBadResult(deleteRes.Message, false);
+    }
+
+    private async Task EditSport(int Id){
+        ToggleForm(true);
+        var getModel = await _sportTypeService.GetByIdAsync(Id);
+        if (getModel.Success){
+            var singeSport = getModel.Data;
+            updateSportTypeModel = _mapper.Map<UpdateSportTypeDTO>(singeSport);
+            editformHidden = false;
+            return;
+        }
+        HandleBadResult(getModel.Message, false);
+        ToggleForm(true);
     }
 }

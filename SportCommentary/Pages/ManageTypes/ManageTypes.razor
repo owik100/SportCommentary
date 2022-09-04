@@ -1,19 +1,28 @@
 ﻿@page "/manageTypes"
 @attribute [Authorize(Roles = "Admin")]
+@using SportCommentary.Components
 
 @{
     var title = "Zarządzaj typami";
 }
-<PageTitle>@title</PageTitle>
-<MudText Align="Align.Center" Typo="Typo.h4">@title</MudText>
-<br/>
+<PageHeaderTitle Title="@title"/>
 @code {
+    bool OverLayIsVisible = false;
 
+    private void OpenOverlay()
+    {
+        OverLayIsVisible = true;
+        StateHasChanged();
+    }
 }
+<MudOverlay ZIndex="9999" @bind-Visible="OverLayIsVisible" DarkBackground="true" >
+     <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+</MudOverlay>
+
 <div class="container">   
     <div class="row row-cols-1 row-cols-md-3 g-4">
   <div class="card">
-   <NavLink href="manageSports"> 
+   <NavLink href="manageSports" onclick="@OpenOverlay"> 
     <img class="card-img-top" src="/img/sport.png" alt="Sports image">
     <div class="card-body">
       <h5 class="card-title text-center">Sporty</h5>

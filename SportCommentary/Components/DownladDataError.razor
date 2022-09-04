@@ -1,11 +1,11 @@
 ﻿@inject NavigationManager _navigationManager
 
-<h1>ERRR</h1>
 <MudAlert Class="mr-3 ml-3 mb-3" Severity="Severity.Error" Variant="Variant.Filled"> @ErrorMessage </MudAlert>
 <MudFab Color="Color.Primary" Class="mb-4 ml-3" StartIcon="@Icons.Material.Filled.Refresh" @onclick="NavigatePage" Label="Odśwież" />
 @code {
     [Parameter]
     public string ErrorMessage { get; set; }
+    [Parameter]
     public string RefreshPage { get; set; }
 
     void NavigatePage()
