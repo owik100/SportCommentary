@@ -1,0 +1,55 @@
+﻿@using SportCommentaryDataAccess.DTO.Event
+
+  <MudTable Striped Items="@events" Hover="true" Breakpoint="Breakpoint.Xs"  Loading="@(events == null)" LoadingProgressColor="Color.Info" Filter="new Func<EventDTO ,bool>(FilterFunc)">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">Wydarzenia</MudText>
+            <MudSpacer />
+                <MudTextField @bind-Value="searchString" Immediate="true" Placeholder="Szukaj" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+        </ToolBarContent>
+             <ColGroup>
+                 <col style="width: 5%" />
+                  <col />
+                <col style="width: 250px" />
+                </ColGroup>
+        <HeaderContent>
+            <MudTh>Lp.</MudTh>
+            <MudTh>Nazwa</MudTh>
+            <MudTh>Akcje</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Lp.">@(GetRowNumber(context))</MudTd>
+                        <MudTd DataLabel="Nazwa">@context.Name</MudTd>
+                        <MudTd DataLabel="Akcje">
+                               <MudButton class="mr-2" Variant="Variant.Filled" @onclick="(()=> OnEditClick.InvokeAsync(context.EventID))" StartIcon="@Icons.Material.Filled.Edit" Color="Color.Secondary">Edytuj</MudButton>
+                               <MudButton Variant="Variant.Filled" @onclick="(()=> OnDeleteClick.InvokeAsync(context.EventID))" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error">Usuń</MudButton>
+                        </MudTd>
+                    </RowTemplate>
+                </MudTable>
+
+
+    @code {
+    [Parameter]
+    public List<EventDTO>? events { get; set; }
+
+    [Parameter]
+    public EventCallback<int> OnEditClick { get; set; }
+
+    [Parameter]
+    public EventCallback<int> OnDeleteClick { get; set; }
+
+    private string searchString = "";
+    private bool FilterFunc(EventDTO element) => FilterFuncWithSearch(element, searchString);
+
+    private bool FilterFuncWithSearch(EventDTO element, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (element.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
+    }
+
+    private int? GetRowNumber(object element) =>
+       events?.TakeWhile(x => x != element).Count() + 1;
+
+}

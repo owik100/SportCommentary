@@ -49,6 +49,9 @@ builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddScoped<ISportTypeRepository, SportTypeRepository>();
 builder.Services.AddScoped<ISportTypeService, SportTypeService>();
 
+builder.Services.AddScoped<IEventsRepository, EventsRepository>();
+builder.Services.AddScoped<IEventService, EventService>();
+
 builder.Logging.AddLog4Net();
 
 builder.Services.AddAuthorization(options =>

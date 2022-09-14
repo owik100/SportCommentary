@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using SportCommentaryDataAccess.DTO;
+using SportCommentaryDataAccess.DTO.Event;
 using SportCommentaryDataAccess.DTO.SportType;
 using SportCommentaryDataAccess.Entities;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
@@ -14,6 +15,10 @@ namespace SportCommentary.Mapper
             CreateMap<SportType, SportTypeDTO>();
             CreateMap<UpdateSportTypeDTO, SportType>();
             CreateMap<SportTypeDTO, UpdateSportTypeDTO>();
+
+
+            CreateMap<CreateEventDTO, Event>();
+            CreateMap<Event, EventDTO>();
         }
     }
 }

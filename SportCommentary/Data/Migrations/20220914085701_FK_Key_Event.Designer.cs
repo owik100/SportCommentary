@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SportCommentary.Data;
 
@@ -11,9 +12,10 @@ using SportCommentary.Data;
 namespace SportCommentary.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220914085701_FK_Key_Event")]
+    partial class FK_Key_Event
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -262,13 +264,14 @@ namespace SportCommentary.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("EventID"), 1L, 1);
 
                     b.Property<string>("Icon")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("SportTypeID")
+                    b.Property<int>("SportTypeID")
                         .HasColumnType("int");
 
                     b.HasKey("EventID");
@@ -391,7 +394,9 @@ namespace SportCommentary.Data.Migrations
                 {
                     b.HasOne("SportCommentaryDataAccess.Entities.SportType", "SportType")
                         .WithMany()
-                        .HasForeignKey("SportTypeID");
+                        .HasForeignKey("SportTypeID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("SportType");
                 });

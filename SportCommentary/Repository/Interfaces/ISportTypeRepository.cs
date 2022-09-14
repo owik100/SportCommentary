@@ -24,7 +24,7 @@ namespace SportCommentary.Repository.Interfaces
         /// <returns>bool</returns>
         Task<bool> SportTypeExistAsync(string SportTypeName);
         /// <summary>
-        /// Add a new record for company
+        /// Add a new record for sportType
         /// </summary>
         /// <param name="sportType"></param>
         /// <returns>bool</returns>

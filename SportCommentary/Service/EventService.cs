@@ -2,46 +2,38 @@
 using SportCommentary.Repository.Interfaces;
 using SportCommentary.Service.Interfaces;
 using SportCommentaryDataAccess;
-using SportCommentaryDataAccess.DTO;
+using SportCommentaryDataAccess.DTO.Event;
 using SportCommentaryDataAccess.DTO.SportType;
 using SportCommentaryDataAccess.Entities;
 
 namespace SportCommentary.Service
 {
-    public class SportTypeService : ISportTypeService
+    public class EventService : IEventService
     {
-        private readonly ISportTypeRepository _sportTypeRepo;
+        private readonly IEventsRepository _eventRepo;
         private readonly IMapper _mapper;
-        public SportTypeService(IMapper mapper, ISportTypeRepository sportTypeRepo)
+        public EventService(IMapper mapper, IEventsRepository eventRepo)
         {
             _mapper = mapper;
-            _sportTypeRepo = sportTypeRepo;
+            _eventRepo = eventRepo;
         }
-        public async Task<ServiceResponse<SportTypeDTO>> AddSportTypeAsync(CreateSportTypeDTO createSportTypeDTO)
+        public async Task<ServiceResponse<EventDTO>> AddEventAsync(CreateEventDTO createEventDTO)
         {
-            ServiceResponse<SportTypeDTO> response = new();
+            ServiceResponse<EventDTO> response = new();
             try
             {
-                if (await _sportTypeRepo.SportTypeExistAsync(createSportTypeDTO.Name))
-                {
-                    response.Message = "Ten Sport już istnieje";
-                    response.Success = false;
-                    response.Data = null;
-                    return response;
-                }
+                var newEvent = _mapper.Map<Event>(createEventDTO);
 
-                var newSportType = _mapper.Map<SportType>(createSportTypeDTO);
-
-                if (!await _sportTypeRepo.CreateSportTypeAsync(newSportType))
+                if (!await _eventRepo.CreateEventAsync(newEvent))
                 {
-                    response.Message = "Błąd przy dodawaniu sportu";
+                    response.Message = "Błąd przy dodawaniu wydarzenia";
                     response.Success = false;
                     response.Data = null;
                     return response;
                 }
 
                 response.Success = true;
-                response.Data = _mapper.Map<SportTypeDTO>(newSportType);
+                response.Data = _mapper.Map<EventDTO>(newEvent);
                 response.Message = "Created";
 
             }
@@ -56,25 +48,25 @@ namespace SportCommentary.Service
             return response;
         }
 
-        public async Task<ServiceResponse<string>> DeleteSportType(int Id)
+        public async Task<ServiceResponse<string>> DeleteEventType(int Id)
         {
             ServiceResponse<string> _response = new();
             try
             {
-                SportType _existingSportType = await _sportTypeRepo.GetSportTypeByIdAsync(Id);
+                Event _existingEvent = await _eventRepo.GetEventByIdAsync(Id);
 
-                if (_existingSportType == null)
+                if (_existingEvent == null)
                 {
                     _response.Success = false;
-                    _response.Message = "Nie znaleziono sportu do usnięcia";
+                    _response.Message = "Nie znaleziono wydarzenia do usnięcia";
                     _response.Data = null;
                     return _response;
                 }
 
-                if (!await _sportTypeRepo.DeleteSportTypeAsync(_existingSportType))
+                if (!await _eventRepo.DeleteEventTypeAsync(_existingEvent))
                 {
                     _response.Success = false;
-                    _response.Message = "Nie udało się usunąć pozycji";
+                    _response.Message = "Nie udało się usunąć wydarzenia";
                     return _response;
                 }
 
@@ -92,23 +84,23 @@ namespace SportCommentary.Service
             return _response;
         }
 
-        public async Task<ServiceResponse<List<SportTypeDTO>>> GetAllSportTypesAsync()
+        public async Task<ServiceResponse<List<EventDTO>>> GetAllEventsAsync()
         {
-            ServiceResponse<List<SportTypeDTO>> _response = new();
+            ServiceResponse<List<EventDTO>> _response = new();
             try
             {
-                ICollection<SportType> Sports = await _sportTypeRepo.GetAllSportTypesAsync();
+                ICollection<Event> Events = await _eventRepo.GetAllEventsAsync();
 
-                List<SportTypeDTO> sportsTypeDTOList = new List<SportTypeDTO>();
+                List<EventDTO> eventDTOList = new List<EventDTO>();
 
-                foreach (var item in Sports)
+                foreach (var item in Events)
                 {
-                    sportsTypeDTOList.Add(_mapper.Map<SportTypeDTO>(item));
+                    eventDTOList.Add(_mapper.Map<EventDTO>(item));
                 }
 
                 _response.Success = true;
                 _response.Message = "ok";
-                _response.Data = sportsTypeDTOList;
+                _response.Data = eventDTOList;
 
             }
             catch (Exception ex)
@@ -122,25 +114,25 @@ namespace SportCommentary.Service
             return _response;
         }
 
-        public async Task<ServiceResponse<SportTypeDTO>> GetByIdAsync(int Id)
+        public async Task<ServiceResponse<EventDTO>> GetByIdAsync(int Id)
         {
-            ServiceResponse<SportTypeDTO> _response = new();
+            ServiceResponse<EventDTO> _response = new();
             try
             {
-                SportType sportType = await _sportTypeRepo.GetSportTypeByIdAsync(Id);
+                Event eventType = await _eventRepo.GetEventByIdAsync(Id);
 
-                if (sportType == null)
+                if (eventType == null)
                 {
                     _response.Success = false;
-                    _response.Message = "Nie znaleziono sportu";
+                    _response.Message = "Nie znaleziono wydarzenia";
                     return _response;
                 }
 
-                SportTypeDTO sportTypeDTO = _mapper.Map<SportTypeDTO>(sportType);
+                EventDTO eventDTO = _mapper.Map<EventDTO>(eventType);
 
                 _response.Success = true;
                 _response.Message = "ok";
-                _response.Data = sportTypeDTO;
+                _response.Data = eventDTO;
 
             }
             catch (Exception ex)
@@ -154,37 +146,37 @@ namespace SportCommentary.Service
             return _response;
         }
 
-        public async Task<ServiceResponse<SportTypeDTO>> UpdateSportTypeAsync(UpdateSportTypeDTO updateSportTypeDTO)
+        public async Task<ServiceResponse<EventDTO>> UpdateEventAsync(UpdateEventDTO updateEventDTO)
         {
-            ServiceResponse<SportTypeDTO> _response = new();
+            ServiceResponse<EventDTO> _response = new();
 
             try
             {
- 
-                SportType _existingSportType = await _sportTypeRepo.GetSportTypeByIdAsync(updateSportTypeDTO.SportTypeID);
 
-                if (_existingSportType == null)
+                Event _existingEvent = await _eventRepo.GetEventByIdAsync(updateEventDTO.EventID);
+
+                if (_existingEvent == null)
                 {
                     _response.Success = false;
-                    _response.Message = "Nie znaleziono sportu do zaktualizowania";
+                    _response.Message = "Nie znaleziono wydarzenia do zaktualizowania";
                     _response.Data = null;
                     return _response;
 
                 }
-                _mapper.Map(updateSportTypeDTO, _existingSportType);
+                _mapper.Map(updateEventDTO, _existingEvent);
 
-                if (!await _sportTypeRepo.UpdateSportTypeAsync(_existingSportType))
+                if (!await _eventRepo.UpdateEventAsync(_existingEvent))
                 {
                     _response.Success = false;
-                    _response.Message = "Błąd przy aktualizacji sportu";
+                    _response.Message = "Błąd przy aktualizacji wydarzenia";
                     _response.Data = null;
                     return _response;
                 }
 
-                SportTypeDTO sportTypeDTO = _mapper.Map<SportTypeDTO>(_existingSportType);
+                EventDTO eventTypeDTO = _mapper.Map<EventDTO>(_existingEvent);
                 _response.Success = true;
                 _response.Message = "Updated";
-                _response.Data = sportTypeDTO;
+                _response.Data = eventTypeDTO;
 
             }
             catch (Exception ex)

@@ -6,14 +6,228 @@
 @using SportCommentaryDataAccess
 @using SportCommentaryDataAccess.Entities
 @using SportCommentary.Components
+@using SportCommentaryDataAccess.DTO.Event
+@using SportCommentary.Components.ManageEvents
 
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
+@inject IEventService _eventsService
+@inject IMapper _mapper
 
 @{
     var title = "Zarządzaj wydarzeniami";
 }
 <PageHeaderTitle Title="@title"/>
-@code {
 
+@if (downloadDataError)
+{
+      <DownladDataError ErrorMessage="@errorMessage" RefreshPage="/manageEvents"/>
+}
+else if (events == null)
+{
+        <MudContainer Class="d-flex justify-center">
+            <MudProgressCircular  Color="Color.Primary" Indeterminate="true"/> 
+        </MudContainer>
+}
+else
+{
+        <MudContainer Fixed="true">
+        @if (addNewformHidden && editformHidden)
+        {
+                    <MudFab Color="Color.Primary" Class="mb-4" StartIcon="@Icons.Material.Filled.Add" @onclick="(()=>ToggleForm(false))" Label="Dodaj nowe" />
+        }
+        @if (!editformHidden){
+             <EditForm Class="mb-4" id="editForm" Model="updateEventModel" OnValidSubmit="@HandleValidEditSubmit">
+                       <DataAnnotationsValidator />
+               <MudCard>
+               
+                   <MudCardContent>
+                    <MudText Typo="Typo.h6">Edytuj</MudText>
+                       <MudTextField Label="Nazwa wydarzenia" @bind-Value="updateEventModel.Name" For="@(() => updateEventModel.Name)"/>
+                       <MudTextField Class="d-none" Label="EventID" @bind-Value="updateEventModel.EventID" For="@(() => updateEventModel.EventID)"/>
+                   </MudCardContent>
+                   <MudCardActions>
+                       <MudFab Class="mr-4" ButtonType="ButtonType.Submit" StartIcon="@Icons.Material.Filled.Save" Variant="Variant.Filled" Color="Color.Primary" Label="Zapisz"/>
+                               <MudFab Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Cancel" @onclick="(()=>ToggleForm(true))" Label="Anuluj" />
+                   </MudCardActions>
+               </MudCard>
+             </EditForm>
+        }
+        @if (!addNewformHidden)
+        {
+             <EditForm Class="mb-4" id="addForm" Model="createEventModel" OnValidSubmit="@HandleValidSubmit">
+                       <DataAnnotationsValidator />
+               <MudCard>
+                   <MudCardContent>
+                       <MudText Typo="Typo.h6">Dodaj</MudText>
+                       <MudTextField Label="Nazwa wydarzenia" @bind-Value="createEventModel.Name" For="@(() => createEventModel.Name)"/>
+                       <InputFile id="fileInputAdd" OnChange="UploadFiles" hidden/>
+                       <MudButton HtmlTag="label"
+                            Class="mt-3"
+                            Variant="Variant.Filled"
+                            Color="Color.Secondary"
+                            StartIcon="@Icons.Filled.Image"
+                            for="fileInputAdd">
+                            Dodaj ikonę
+                       </MudButton>
+                   </MudCardContent>
+                   <MudCardActions>
+                       <MudFab Class="mr-4" ButtonType="ButtonType.Submit" StartIcon="@Icons.Material.Filled.Save" Variant="Variant.Filled" Color="Color.Primary" Label="Zapisz"/>
+                               <MudFab Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Cancel" @onclick="(()=>ToggleForm(false))" Label="Anuluj" />
+                   </MudCardActions>
+               </MudCard>
+             </EditForm>
+        }
+
+        <ManageEventsTable events="events" OnEditClick="EditSport" OnDeleteClick="DeleteDialog"/>
+
+        @if (events?.Count == 0)
+        {
+            <MudText Class="mt-3" hidden=@(!addNewformHidden) Align="Align.Center" Typo="Typo.h4">Brak wydarzeń. Dodaj jakieś!</MudText>
+        }
+        </MudContainer>
+
+}
+
+@code {
+    private List<EventDTO>? events;
+    private bool downloadDataError = false;
+    private string errorMessage = "";
+
+    private CreateEventDTO createEventModel = new();
+    private UpdateEventDTO updateEventModel = new();
+    private bool addNewformHidden = true;
+    private bool editformHidden = true;
+    private bool isInvalid = false;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetEvents();
+    }
+
+    private async Task GetEvents()
+    {
+        var getAllResponse = await _eventsService.GetAllEventsAsync();
+        if (getAllResponse.Success)
+        {
+            downloadDataError = false;
+            errorMessage = "";
+            events = getAllResponse.Data;
+            return;
+        }
+        HandleBadResult(getAllResponse.Message, true);
+    }
+
+    private void HandleBadResult(string errMsg, bool downloadDataErrorP)
+    {
+        if (downloadDataErrorP)
+        {
+            errorMessage = errMsg;
+            downloadDataError = true;
+        }
+        else
+        {
+            Snackbar.Add(errMsg, Severity.Error);
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        ToggleForm(false);
+        var submitRes = await _eventsService.AddEventAsync(createEventModel);
+        if (submitRes.Success)
+        {
+            await GetEvents();
+            Snackbar.Add("Wydarzenie zostało dodane", Severity.Success);
+            return;
+        }
+        HandleBadResult(submitRes.Message, false);
+    }
+
+    private void ToggleForm(bool editForm)
+    {
+        if (editForm)
+        {
+            editformHidden = !editformHidden;
+            addNewformHidden = true;
+        }
+        else
+        {
+            addNewformHidden = !addNewformHidden;
+            editformHidden = true;
+            if (!addNewformHidden)
+            {
+                createEventModel = new();
+            }
+        }
+
+    }
+
+    private async Task DeleteDialog(int Id)
+    {
+        var parameters = new DialogParameters();
+        parameters.Add("ContentText", "Czy na pewno chcesz usunąć to wydarzenie? Tej operacji nie można cofnąć!.");
+        parameters.Add("ButtonText", "Usuń");
+        parameters.Add("Color", Color.Error);
+
+        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+
+        var dialog = DialogService.Show<DialogTemplate>("Usuń wydarzenie", parameters, options);
+        var result = await dialog.Result;
+        if (!result.Cancelled)
+        {
+            await HandleDelete(Id);
+        }
+
+    }
+
+    private async Task HandleDelete(int Id)
+    {
+        var deleteRes = await _eventsService.DeleteEventType(Id);
+        if (deleteRes.Success)
+        {
+            await GetEvents();
+            Snackbar.Add("Wydarzenie zostało usunięte", Severity.Success);
+            return;
+        }
+        HandleBadResult(deleteRes.Message, false);
+    }
+
+    private async Task EditSport(int Id)
+    {
+        ToggleForm(true);
+        var getModel = await _eventsService.GetByIdAsync(Id);
+        if (getModel.Success)
+        {
+            var singeSport = getModel.Data;
+            updateEventModel = _mapper.Map<UpdateEventDTO>(singeSport);
+            editformHidden = false;
+            return;
+        }
+        HandleBadResult(getModel.Message, false);
+        ToggleForm(true);
+    }
+
+    private async Task HandleValidEditSubmit()
+    {
+        ToggleForm(true);
+        var submitRes = await _eventsService.UpdateEventAsync(updateEventModel);
+        if (submitRes.Success)
+        {
+            await GetEvents();
+            Snackbar.Add("Wydarzenie zostało zaaktualizowane", Severity.Success);
+            return;
+        }
+        HandleBadResult(submitRes.Message, false);
+    }
+
+    IList<IBrowserFile> files = new List<IBrowserFile>();
+    private void UploadFiles(InputFileChangeEventArgs e)
+    {
+        foreach (var file in e.GetMultipleFiles())
+        {
+            files.Add(file);
+        }
+    }
 }

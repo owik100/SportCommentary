@@ -26,7 +26,7 @@ namespace SportCommentary.Service.Interfaces
         /// Update SportType record
         /// </summary>
         /// <param name="updateSportTypeDTO"></param>
-        /// <returns>CompanyDto</returns>
+        /// <returns>SportTypeDTO</returns>
         Task<ServiceResponse<SportTypeDTO>> UpdateSportTypeAsync(UpdateSportTypeDTO updateSportTypeDTO);
         /// <summary>
         /// Remove SportType record
