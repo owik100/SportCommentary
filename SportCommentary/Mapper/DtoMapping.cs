@@ -19,6 +19,8 @@ namespace SportCommentary.Mapper
 
             CreateMap<CreateEventDTO, Event>();
             CreateMap<Event, EventDTO>();
+            CreateMap<UpdateEventDTO, Event>();
+            CreateMap<EventDTO, UpdateEventDTO>();
         }
     }
 }

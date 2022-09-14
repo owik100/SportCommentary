@@ -8,6 +8,7 @@
 @using SportCommentary.Components
 @using SportCommentaryDataAccess.DTO.Event
 @using SportCommentary.Components.ManageEvents
+@using SportCommentary.Helpers
 
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
@@ -37,6 +38,9 @@ else
                     <MudFab Color="Color.Primary" Class="mb-4" StartIcon="@Icons.Material.Filled.Add" @onclick="(()=>ToggleForm(false))" Label="Dodaj nowe" />
         }
         @if (!editformHidden){
+            @if (string.IsNullOrEmpty(updateEventModel.Icon)){
+                updateEventModel.Icon = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
+            }
              <EditForm Class="mb-4" id="editForm" Model="updateEventModel" OnValidSubmit="@HandleValidEditSubmit">
                        <DataAnnotationsValidator />
                <MudCard>
@@ -44,6 +48,16 @@ else
                    <MudCardContent>
                     <MudText Typo="Typo.h6">Edytuj</MudText>
                        <MudTextField Label="Nazwa wydarzenia" @bind-Value="updateEventModel.Name" For="@(() => updateEventModel.Name)"/>
+                       <InputFile id="fileInputAdd" OnChange="UploadFilesEdit" hidden/>
+                       <MudButton HtmlTag="label"
+                            Class="mt-3"
+                            Variant="Variant.Filled"
+                            Color="Color.Secondary"
+                            StartIcon="@Icons.Filled.Image"
+                            for="fileInputAdd">
+                            Dodaj ikonę
+                       </MudButton>
+                       <MudImage Class="mt-3" Src="@updateEventModel.Icon" Width="32" Height="32" Alt="icon"/>
                        <MudTextField Class="d-none" Label="EventID" @bind-Value="updateEventModel.EventID" For="@(() => updateEventModel.EventID)"/>
                    </MudCardContent>
                    <MudCardActions>
@@ -70,6 +84,7 @@ else
                             for="fileInputAdd">
                             Dodaj ikonę
                        </MudButton>
+                       <MudImage Class="mt-3" Src="@uploadedIcon" Width="32" Height="32" Alt="icon"/>
                    </MudCardContent>
                    <MudCardActions>
                        <MudFab Class="mr-4" ButtonType="ButtonType.Submit" StartIcon="@Icons.Material.Filled.Save" Variant="Variant.Filled" Color="Color.Primary" Label="Zapisz"/>
@@ -135,6 +150,10 @@ else
     private async Task HandleValidSubmit()
     {
         ToggleForm(false);
+        if (uploadedIcon != "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="){
+            createEventModel.Icon = uploadedIcon;
+        }
+
         var submitRes = await _eventsService.AddEventAsync(createEventModel);
         if (submitRes.Success)
         {
@@ -159,6 +178,7 @@ else
             if (!addNewformHidden)
             {
                 createEventModel = new();
+                uploadedIcon = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
             }
         }
 
@@ -212,6 +232,10 @@ else
     private async Task HandleValidEditSubmit()
     {
         ToggleForm(true);
+        if (uploadedIcon != "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=")
+        {
+            updateEventModel.Icon = uploadedIcon;
+        }
         var submitRes = await _eventsService.UpdateEventAsync(updateEventModel);
         if (submitRes.Success)
         {
@@ -222,12 +246,14 @@ else
         HandleBadResult(submitRes.Message, false);
     }
 
-    IList<IBrowserFile> files = new List<IBrowserFile>();
-    private void UploadFiles(InputFileChangeEventArgs e)
+    string uploadedIcon = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
+    private async Task UploadFiles(InputFileChangeEventArgs args)
     {
-        foreach (var file in e.GetMultipleFiles())
-        {
-            files.Add(file);
-        }
+        uploadedIcon = await ImageHelper.InputFileToBase64(args);
+    }
+
+    private async Task UploadFilesEdit(InputFileChangeEventArgs args)
+    {
+        updateEventModel.Icon = await ImageHelper.InputFileToBase64(args);
     }
 }

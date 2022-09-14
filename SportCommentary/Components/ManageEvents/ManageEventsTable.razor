@@ -8,16 +8,24 @@
         </ToolBarContent>
              <ColGroup>
                  <col style="width: 5%" />
-                  <col />
-                <col style="width: 250px" />
+                 <col style="width: 5%" />
+                 <col />
+                 <col style="width: 250px" />
                 </ColGroup>
         <HeaderContent>
             <MudTh>Lp.</MudTh>
+            <MudTh>Ikona</MudTh>
             <MudTh>Nazwa</MudTh>
             <MudTh>Akcje</MudTh>
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="Lp.">@(GetRowNumber(context))</MudTd>
+                        <MudTd DataLabel="Ikona">
+                            @if(string.IsNullOrEmpty(context.Icon)){
+                               context.Icon = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
+                            }
+                            <MudImage Class="mt-3" Src="@context.Icon" Width="32" Height="32" Alt="icon"/>
+                         </MudTd>
                         <MudTd DataLabel="Nazwa">@context.Name</MudTd>
                         <MudTd DataLabel="Akcje">
                                <MudButton class="mr-2" Variant="Variant.Filled" @onclick="(()=> OnEditClick.InvokeAsync(context.EventID))" StartIcon="@Icons.Material.Filled.Edit" Color="Color.Secondary">Edytuj</MudButton>
