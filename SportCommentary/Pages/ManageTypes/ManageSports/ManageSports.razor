@@ -7,6 +7,7 @@
 @using SportCommentaryDataAccess.DTO.SportType
 @using SportCommentaryDataAccess.Entities
 @using SportCommentary.Components
+@using SportCommentary.Components.ManageSports
 
 @inject ISportTypeService _sportTypeService
 @inject ISnackbar Snackbar
@@ -69,31 +70,7 @@ else
              </EditForm>
         }
 
-         <MudTable Striped Items="@sportTypes" Hover="true" Breakpoint="Breakpoint.Xs"  Loading="@(sportTypes == null)" LoadingProgressColor="Color.Info" Filter="new Func<SportTypeDTO ,bool>(FilterFunc1)">
-        <ToolBarContent>
-            <MudText Typo="Typo.h6">Sporty</MudText>
-            <MudSpacer />
-                <MudTextField @bind-Value="searchString1" Immediate="true" Placeholder="Szukaj" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
-        </ToolBarContent>
-             <ColGroup>
-                 <col style="width: 5%" />
-                  <col />
-                <col style="width: 250px" />
-                </ColGroup>
-        <HeaderContent>
-            <MudTh>Lp.</MudTh>
-            <MudTh>Nazwa</MudTh>
-            <MudTh>Akcje</MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd DataLabel="Lp.">@(GetRowNumber(context))</MudTd>
-            <MudTd DataLabel="Nazwa">@context.Name</MudTd>
-            <MudTd DataLabel="Akcje">
-               <MudButton class="mr-2" Variant="Variant.Filled" @onclick="(()=>EditSport(context.SportTypeID))" StartIcon="@Icons.Material.Filled.Edit" Color="Color.Secondary">Edytuj</MudButton>
-               <MudButton Variant="Variant.Filled" @onclick="(()=> DeleteDialog(context.SportTypeID))" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error">Usuń</MudButton>
-            </MudTd>
-        </RowTemplate>
-    </MudTable>
+        <ManageSportsTable sportTypes="sportTypes" OnEditClick="EditSport" OnDeleteClick="DeleteDialog"/>
 
         @if (sportTypes?.Count == 0)
         {
@@ -112,16 +89,11 @@ else
     private bool addNewformHidden = true;
     private bool editformHidden = true;
     private bool isInvalid = false;
-    private int? GetRowNumber(object element) =>
-        sportTypes?.TakeWhile(x => x != element).Count() + 1;
-
-    private string searchString1 = "";
-
+   
     protected override async Task OnInitializedAsync()
     {
         await GetSportTypes();
     }
-
 
     private async Task GetSportTypes()
     {
@@ -232,16 +204,4 @@ else
         }
         HandleBadResult(submitRes.Message, false);
     }
-
-    private bool FilterFunc1(SportTypeDTO element) => FilterFunc(element, searchString1);
-
-    private bool FilterFunc(SportTypeDTO element, string searchString)
-    {
-        if (string.IsNullOrWhiteSpace(searchString))
-            return true;
-        if (element.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
-            return true;
-        return false;
-    }
-
 }

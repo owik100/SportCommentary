@@ -1,0 +1,19 @@
+﻿@page "/manageEvents"
+@attribute [Authorize(Roles = "Admin")]
+
+@using AutoMapper
+@using SportCommentary.Service.Interfaces
+@using SportCommentaryDataAccess
+@using SportCommentaryDataAccess.Entities
+@using SportCommentary.Components
+
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+@{
+    var title = "Zarządzaj wydarzeniami";
+}
+<PageHeaderTitle Title="@title"/>
+@code {
+
+}
