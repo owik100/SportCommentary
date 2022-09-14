@@ -9,7 +9,7 @@
 <MudLayout>
     <MudAppBar >
         <MudIconButton Size="Size.Medium" Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
-        <MudText Typo="Typo.h5">Sport Commentary <i class="ml-2 fa-solid fa-volleyball"></i></MudText>
+        <a href="/" Typo="Typo.h5">Sport Commentary<i class="ml-2 fa-solid fa-volleyball"></i></a>
     </MudAppBar>
     <MudDrawer @bind-Open="@_drawerOpen" ClipMode="DrawerClipMode.Always">
         <NavMenu/>
