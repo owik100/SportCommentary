@@ -5,8 +5,10 @@
     </div>
     <MudNavLink Icon="@Icons.Filled.Home" Href="/" Match="NavLinkMatch.All">Strona główna</MudNavLink>
      <AuthorizeView Roles="Admin">
+          <MudNavGroup Title="Relacje" Icon="@Icons.Filled.Comment" Expanded=true>
+                <MudNavLink Icon="@Icons.Filled.Add" Href="/addNewRelation" Match="NavLinkMatch.Prefix">Rozpocznij nową relację</MudNavLink>
+                <MudNavLink Icon="@Icons.Filled.LiveTv" Href="/commentaryLive" Match="NavLinkMatch.Prefix">Relacje live</MudNavLink>
+           </MudNavGroup>
          <MudNavLink Icon="@Icons.Filled.Settings"  Href="/manageTypes" Match="NavLinkMatch.Prefix">Zarządzaj typami</MudNavLink>
      </AuthorizeView>
-    <MudNavLink Icon="@Icons.Filled.PlusOne" Href="/counter"  Match="NavLinkMatch.Prefix">Counter</MudNavLink>
-    <MudNavLink Icon="@Icons.Filled.DataArray" Href="/fetchdata"  Match="NavLinkMatch.Prefix">Fetch data</MudNavLink>
 </MudNavMenu>
