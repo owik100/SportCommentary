@@ -1,6 +1,6 @@
 ﻿@using SportCommentaryDataAccess.DTO.Event
 
-  <MudTable Striped Items="@events" Hover="true" Breakpoint="Breakpoint.Xs"  Loading="@(events == null)" LoadingProgressColor="Color.Info" Filter="new Func<EventDTO ,bool>(FilterFunc)">
+  <MudTable SortLabel="Sortuj według" Striped Items="@events" Hover="true" Breakpoint="Breakpoint.Xs"  Loading="@(events == null)" LoadingProgressColor="Color.Info" Filter="new Func<EventDTO ,bool>(FilterFunc)">
         <ToolBarContent>
             <MudText Typo="Typo.h6">Wydarzenia</MudText>
             <MudSpacer />
@@ -9,13 +9,15 @@
              <ColGroup>
                  <col style="width: 5%" />
                  <col style="width: 5%" />
+                 <col style="width: 15%" />
                  <col />
                  <col style="width: 250px" />
                 </ColGroup>
         <HeaderContent>
-            <MudTh>Lp.</MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<EventDTO, object>(x=>GetRowNumber(x))">Lp.</MudTableSortLabel></MudTh>
             <MudTh>Ikona</MudTh>
-            <MudTh>Nazwa</MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<EventDTO, object>(x=>x.Name)">Nazwa</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<EventDTO, object>(x=>x.SportType?.Name)">Sport</MudTableSortLabel></MudTh>
             <MudTh>Akcje</MudTh>
         </HeaderContent>
         <RowTemplate>
@@ -27,6 +29,7 @@
                             <MudImage Class="mt-3" Src="@context.Icon" Width="32" Height="32" Alt="icon"/>
                          </MudTd>
                         <MudTd DataLabel="Nazwa">@context.Name</MudTd>
+                        <MudTd DataLabel="Nazwa">@context?.SportType?.Name</MudTd>
                         <MudTd DataLabel="Akcje">
                                <MudButton class="mr-2" Variant="Variant.Filled" @onclick="(()=> OnEditClick.InvokeAsync(context.EventID))" StartIcon="@Icons.Material.Filled.Edit" Color="Color.Secondary">Edytuj</MudButton>
                                <MudButton Variant="Variant.Filled" @onclick="(()=> OnDeleteClick.InvokeAsync(context.EventID))" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error">Usuń</MudButton>

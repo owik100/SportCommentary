@@ -1,6 +1,6 @@
 ﻿@using SportCommentaryDataAccess.DTO.SportType
 
-  <MudTable Striped Items="@sportTypes" Hover="true" Breakpoint="Breakpoint.Xs"  Loading="@(sportTypes == null)" LoadingProgressColor="Color.Info" Filter="new Func<SportTypeDTO ,bool>(FilterFunc)">
+  <MudTable SortLabel="Sortuj według"  Striped Items="@sportTypes" Hover="true" Breakpoint="Breakpoint.Xs"  Loading="@(sportTypes == null)" LoadingProgressColor="Color.Info" Filter="new Func<SportTypeDTO ,bool>(FilterFunc)">
         <ToolBarContent>
             <MudText Typo="Typo.h6">Sporty</MudText>
             <MudSpacer />
@@ -12,9 +12,9 @@
                 <col style="width: 250px" />
                 </ColGroup>
         <HeaderContent>
-            <MudTh>Lp.</MudTh>
-            <MudTh>Nazwa</MudTh>
-            <MudTh>Akcje</MudTh>
+           <MudTh><MudTableSortLabel SortBy="new Func<SportTypeDTO, object>(x=>GetRowNumber(x))">Lp.</MudTableSortLabel></MudTh>
+           <MudTh><MudTableSortLabel SortBy="new Func<SportTypeDTO, object>(x=>x.Name)">Nazwa</MudTableSortLabel></MudTh>
+           <MudTh>Akcje</MudTh>
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="Lp.">@(GetRowNumber(context))</MudTd>

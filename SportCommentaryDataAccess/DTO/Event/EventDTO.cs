@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using SportCommentaryDataAccess.DTO.SportType;
 
 namespace SportCommentaryDataAccess.DTO.Event
 {
@@ -18,5 +19,6 @@ namespace SportCommentaryDataAccess.DTO.Event
         public string Name { get; set; }
         public string? Icon { get; set; }
         public int? SportTypeID { get; set; }
+        public SportTypeDTO? SportType { get; set; }
     }
 }

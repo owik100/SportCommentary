@@ -4,6 +4,7 @@
 @using AutoMapper
 @using SportCommentary.Service.Interfaces
 @using SportCommentaryDataAccess
+@using SportCommentaryDataAccess.DTO.SportType
 @using SportCommentaryDataAccess.Entities
 @using SportCommentary.Components
 @using SportCommentaryDataAccess.DTO.Event
@@ -13,6 +14,7 @@
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 @inject IEventService _eventsService
+@inject ISportTypeService _sportTypeService
 @inject IMapper _mapper
 
 @{
@@ -59,6 +61,12 @@ else
                        </MudButton>
                        <MudImage Class="mt-3" Src="@updateEventModel.Icon" Width="32" Height="32" Alt="icon"/>
                        <MudTextField Class="d-none" Label="EventID" @bind-Value="updateEventModel.EventID" For="@(() => updateEventModel.EventID)"/>
+                       <MudSelect @bind-Value="selectedSportID" Clearable="true"  HelperText="Zostaw puste jeżeli chcesz by wydarzenie było dostępne dla wszystkich sportów" T="int" Label="Sport" AnchorOrigin="Origin.BottomCenter">
+                           @foreach (var sport in sportTypes)
+                            {
+                               <MudSelectItem Value="sport.SportTypeID">@sport.Name</MudSelectItem>
+                            }
+                       </MudSelect>
                    </MudCardContent>
                    <MudCardActions>
                        <MudFab Class="mr-4" ButtonType="ButtonType.Submit" StartIcon="@Icons.Material.Filled.Save" Variant="Variant.Filled" Color="Color.Primary" Label="Zapisz"/>
@@ -85,6 +93,12 @@ else
                             Dodaj ikonę
                        </MudButton>
                        <MudImage Class="mt-3" Src="@uploadedIcon" Width="32" Height="32" Alt="icon"/>
+                        <MudSelect  Clearable="true" @bind-Value="selectedSportID"  HelperText="Zostaw puste jeżeli chcesz by wydarzenie było dostępne dla wszystkich sportów" T="Int32" Label="Sport" AnchorOrigin="Origin.BottomCenter">
+                           @foreach (var sport in sportTypes)
+                            {
+                               <MudSelectItem Value="sport.SportTypeID">@sport.Name</MudSelectItem>
+                            }
+                       </MudSelect>
                    </MudCardContent>
                    <MudCardActions>
                        <MudFab Class="mr-4" ButtonType="ButtonType.Submit" StartIcon="@Icons.Material.Filled.Save" Variant="Variant.Filled" Color="Color.Primary" Label="Zapisz"/>
@@ -106,6 +120,7 @@ else
 
 @code {
     private List<EventDTO>? events;
+    private List<SportTypeDTO>? sportTypes;
     private bool downloadDataError = false;
     private string errorMessage = "";
 
@@ -115,9 +130,11 @@ else
     private bool editformHidden = true;
     private bool isInvalid = false;
 
+    private int selectedSportID { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
+        await GetSportTypes();
         await GetEvents();
     }
 
@@ -132,6 +149,15 @@ else
             return;
         }
         HandleBadResult(getAllResponse.Message, true);
+    }
+
+    private async Task GetSportTypes()
+    {
+        var getAllResponse = await _sportTypeService.GetAllSportTypesAsync();
+        if (getAllResponse.Success)
+        {
+            sportTypes = getAllResponse.Data;
+        }
     }
 
     private void HandleBadResult(string errMsg, bool downloadDataErrorP)
@@ -153,7 +179,7 @@ else
         if (uploadedIcon != "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="){
             createEventModel.Icon = uploadedIcon;
         }
-
+        createEventModel.SportTypeID = selectedSportID == 0 ? null : selectedSportID;
         var submitRes = await _eventsService.AddEventAsync(createEventModel);
         if (submitRes.Success)
         {
@@ -177,6 +203,7 @@ else
             editformHidden = true;
             if (!addNewformHidden)
             {
+                selectedSportID = 0;
                 createEventModel = new();
                 uploadedIcon = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
             }
@@ -222,6 +249,7 @@ else
         {
             var singeSport = getModel.Data;
             updateEventModel = _mapper.Map<UpdateEventDTO>(singeSport);
+            selectedSportID = updateEventModel.SportTypeID == null ? default(int) : updateEventModel.SportTypeID.Value;
             editformHidden = false;
             return;
         }
@@ -236,6 +264,7 @@ else
         {
             updateEventModel.Icon = uploadedIcon;
         }
+        updateEventModel.SportTypeID = selectedSportID == 0 ? null : selectedSportID;
         var submitRes = await _eventsService.UpdateEventAsync(updateEventModel);
         if (submitRes.Success)
         {
