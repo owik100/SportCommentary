@@ -3,6 +3,7 @@ using SportCommentary.Repository.Interfaces;
 using SportCommentary.Service.Interfaces;
 using SportCommentaryDataAccess;
 using SportCommentaryDataAccess.DTO;
+using SportCommentaryDataAccess.DTO.Commentary;
 using SportCommentaryDataAccess.DTO.SportType;
 using SportCommentaryDataAccess.Entities;
 

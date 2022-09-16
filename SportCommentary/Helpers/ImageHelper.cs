@@ -12,7 +12,7 @@ namespace SportCommentary.Helpers
                 foreach (var file in files)
                 {
                     await using MemoryStream fs = new MemoryStream();
-                    await file.OpenReadStream().CopyToAsync(fs);
+                    await file.OpenReadStream(5120000).CopyToAsync(fs);
                     byte[] somBytes = GetBytes(fs);
                     base64String = Convert.ToBase64String(somBytes, 0, somBytes.Length);
                     base64String = "data:" + file.ContentType + ";base64," + base64String;

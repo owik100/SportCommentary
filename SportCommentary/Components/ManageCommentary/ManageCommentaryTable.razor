@@ -1,0 +1,55 @@
+﻿@using SportCommentaryDataAccess.DTO.Commentary
+
+  <MudTable SortLabel="Sortuj według" Striped Items="@comments" Hover="true" Breakpoint="Breakpoint.Xs"  Loading="@(comments == null)" LoadingProgressColor="Color.Info" Filter="new Func<CommentaryDTO ,bool>(FilterFunc)">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">Relacje</MudText>
+            <MudSpacer />
+                <MudTextField @bind-Value="searchString" Immediate="true" Placeholder="Szukaj" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+        </ToolBarContent>
+             <ColGroup>
+                 <col style="width: 5%" />
+                  <col />
+                <col style="width: 250px" />
+                </ColGroup>
+        <HeaderContent>
+           <MudTh><MudTableSortLabel SortBy="new Func<CommentaryDTO, object>(x=>GetRowNumber(x))">Lp.</MudTableSortLabel></MudTh>
+           <MudTh><MudTableSortLabel SortBy="new Func<CommentaryDTO, object>(x=>x.Caption)">Nazwa</MudTableSortLabel></MudTh>
+           <MudTh>Akcje</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Lp.">@(GetRowNumber(context))</MudTd>
+                        <MudTd DataLabel="Nazwa">@context.Caption</MudTd>
+                        <MudTd DataLabel="Akcje">
+                               <MudButton class="mr-2" Variant="Variant.Filled" @onclick="(()=> OnEditClick.InvokeAsync(context.CommentaryID))" StartIcon="@Icons.Material.Filled.Edit" Color="Color.Secondary">Edytuj</MudButton>
+                                   <MudButton Variant="Variant.Filled" @onclick="(()=> OnDeleteClick.InvokeAsync(context.CommentaryID))" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error">Usuń</MudButton>
+                        </MudTd>
+                    </RowTemplate>
+                </MudTable>
+
+
+    @code {
+    [Parameter]
+    public List<CommentaryDTO>? comments { get; set; }
+
+    [Parameter]
+    public EventCallback<int> OnEditClick { get; set; }
+
+    [Parameter]
+    public EventCallback<int> OnDeleteClick { get; set; }
+
+    private string searchString = "";
+    private bool FilterFunc(CommentaryDTO element) => FilterFuncWithSearch(element, searchString);
+
+    private bool FilterFuncWithSearch(CommentaryDTO element, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (element.Caption.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
+    }
+
+    private int? GetRowNumber(object element) =>
+       comments?.TakeWhile(x => x != element).Count() + 1;
+
+}

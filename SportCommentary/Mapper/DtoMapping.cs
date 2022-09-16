@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using SportCommentaryDataAccess.DTO;
+using SportCommentaryDataAccess.DTO.Commentary;
 using SportCommentaryDataAccess.DTO.Event;
 using SportCommentaryDataAccess.DTO.SportType;
 using SportCommentaryDataAccess.Entities;
@@ -21,6 +22,12 @@ namespace SportCommentary.Mapper
             CreateMap<Event, EventDTO>();
             CreateMap<UpdateEventDTO, Event>();
             CreateMap<EventDTO, UpdateEventDTO>();
+
+
+            CreateMap<CreateCommentaryDTO, Commentary>();
+            CreateMap<Commentary, CommentaryDTO>();
+            CreateMap<UpdateCommentaryDTO, Commentary>();
+            CreateMap<CommentaryDTO, UpdateCommentaryDTO>();
         }
     }
 }

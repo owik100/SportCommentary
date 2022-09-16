@@ -1,5 +1,7 @@
 ﻿using SportCommentaryDataAccess;
+using SportCommentaryDataAccess.DTO.Commentary;
 using SportCommentaryDataAccess.DTO.SportType;
+using SportCommentaryDataAccess.Entities;
 
 namespace SportCommentary.Service.Interfaces
 {
@@ -15,6 +17,7 @@ namespace SportCommentary.Service.Interfaces
         /// </summary>
         /// <param name="Id"></param>
         /// <returns>SportTypeDTO</returns>
+        /// 
         Task<ServiceResponse<SportTypeDTO>> GetByIdAsync(int Id);
         /// <summary>
         /// Add new SportType record in db

@@ -1,4 +1,10 @@
 ﻿@using SportCommentary.Components
+@using SportCommentary.Helpers
+@using SportCommentary.Service.Interfaces
+@using SportCommentaryDataAccess.DTO.Commentary
+
+@inject ISnackbar Snackbar
+@inject ICommentaryService _commentaryService
 
 @page "/addNewRelation"
 @attribute [Authorize(Roles = "Admin")]
@@ -8,6 +14,58 @@
 }
 <PageHeaderTitle Title="@title"/>
 
-@code {
+  <EditForm Class="mb-4" id="newCommentaryForm" Model="createCommentaryDTO" OnValidSubmit="@HandleValidSubmit">
+                       <DataAnnotationsValidator />
+               <MudCard>
+                   <MudCardContent>
+                       <MudText Typo="Typo.h6">Stwórz relację live</MudText>
+                       <MudTextField Label="Nazwa relacji" @bind-Value="createCommentaryDTO.Caption" For="@(() => createCommentaryDTO.Caption)"/>
+                       <MudTextField Lines="4" Label="Opis relacji" @bind-Value="createCommentaryDTO.Description" For="@(() => createCommentaryDTO.Description)"/>
+                        <InputFile id="fileInputAddImage" OnChange="UploadImageToCommentary" hidden/>
+                          <MudButton HtmlTag="label"
+                            Class="mt-3 mb-3"
+                            Variant="Variant.Filled"
+                            Color="Color.Secondary"
+                            StartIcon="@Icons.Filled.Image"
+                            for="fileInputAddImage">
+                            Dodaj obrazek relacji
+                         </MudButton>
+                       <div class="d-flex justify-center">
+                            <MudImage ObjectFit=ObjectFit.Cover Src="@uploadedImage" Alt="commentaryImage"  Elevation="25" Class="rounded-lg imgFit"/>
+                       </div>
+                   </MudCardContent>
+                   <MudCardActions>
+                       <MudFab Class="mr-4" ButtonType="ButtonType.Submit" StartIcon="@Icons.Material.Filled.LiveTv" Variant="Variant.Filled" Color="Color.Primary" Label="Utwórz relację"/>
+                   </MudCardActions>
+               </MudCard>
+  </EditForm>
 
+@code {
+    private CreateCommentaryDTO createCommentaryDTO = new();
+
+    private void HandleBadResult(string errMsg, bool downloadDataErrorP)
+    {
+        Snackbar.Add(errMsg, Severity.Error);
+    }
+
+    string uploadedImage = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
+    private async Task UploadImageToCommentary(InputFileChangeEventArgs args)
+    {
+        uploadedImage = await ImageHelper.InputFileToBase64(args);
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (uploadedImage != "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=")
+        {
+            createCommentaryDTO.CommentaryImage = uploadedImage;
+        }
+        var submitRes = await _commentaryService.AddCommentaryAsync(createCommentaryDTO);
+        if (submitRes.Success)
+        {
+            Snackbar.Add("Relacja została rozpoczęta!", Severity.Success);
+            return;
+        }
+        HandleBadResult(submitRes.Message, false);
+    }
 }

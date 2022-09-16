@@ -1,0 +1,191 @@
+﻿@using AutoMapper
+@using SportCommentary.Components
+@using SportCommentary.Helpers
+@using SportCommentaryDataAccess.DTO.Commentary
+@using SportCommentary.Service.Interfaces
+@using SportCommentary.Components.ManageCommentary
+
+@page "/manageCommentary"
+@attribute [Authorize(Roles = "Admin")]
+
+@inject ISnackbar Snackbar
+@inject ICommentaryService _commentaryService
+@inject IDialogService DialogService
+@inject IMapper _mapper
+@inject NavigationManager _navigationManager
+
+@{
+    var title = "Zarządzaj relacjami";
+}
+<PageHeaderTitle Title="@title"/>
+
+@if (downloadDataError)
+{
+                <DownladDataError ErrorMessage="@errorMessage" RefreshPage="/manageCommentary"/>
+}
+else if (commentaries == null)
+{
+            <MudContainer Class="d-flex justify-center">
+                <MudProgressCircular  Color="Color.Primary" Indeterminate="true"/> 
+            </MudContainer>
+}
+else
+{
+    @if (editformHidden)
+    {
+        <MudFab Color="Color.Primary" Class="mb-4 ml-5" StartIcon="@Icons.Material.Filled.LiveTv" @onclick="(()=>StartNewRelation())" Label="Rozpocznij nową relacje" />
+    }
+        <MudContainer Fixed="true">
+        @if (!editformHidden){
+             <EditForm Class="mb-4" id="editForm" Model="updateCommentaryModel" OnValidSubmit="@HandleValidEditSubmit">
+                       <DataAnnotationsValidator />
+               <MudCard>
+               
+                     <MudCardContent>
+                               <MudText Typo="Typo.h6">Stwórz relację live</MudText>
+                               <MudTextField Label="Nazwa relacji" @bind-Value="updateCommentaryModel.Caption" For="@(() => updateCommentaryModel.Caption)"/>
+                               <MudTextField Lines="4" Label="Opis relacji" @bind-Value="updateCommentaryModel.Description" For="@(() => updateCommentaryModel.Description)"/>
+                                <InputFile id="fileInputAddImage" OnChange="UploadImageToCommentary" hidden/>
+                                  <MudButton HtmlTag="label"
+                            Class="mt-3 mb-3"
+                            Variant="Variant.Filled"
+                            Color="Color.Secondary"
+                            StartIcon="@Icons.Filled.Image"
+                            for="fileInputAddImage">
+                                    Dodaj obrazek relacji
+                                 </MudButton>
+                               <div class="d-flex justify-center">
+                                    <MudImage ObjectFit=ObjectFit.Cover Src="@uploadedImage" Alt="commentaryImage"  Elevation="25" Class="rounded-lg imgFit"/>
+                               </div>
+                       </MudCardContent>
+                   <MudCardActions>
+                       <MudFab Class="mr-4" ButtonType="ButtonType.Submit" StartIcon="@Icons.Material.Filled.Save" Variant="Variant.Filled" Color="Color.Primary" Label="Zapisz"/>
+                               <MudFab Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Cancel" @onclick="(()=>ToggleForm())" Label="Anuluj" />
+                   </MudCardActions>
+               </MudCard>
+             </EditForm>
+        }
+
+            <ManageCommentaryTable comments="commentaries" OnEditClick="EditCommentary" OnDeleteClick="DeleteDialog"/>
+
+        @if (commentaries?.Count == 0)
+        {
+            <MudText Class="mt-3" Align="Align.Center" Typo="Typo.h4">Brak wydarzeń. Dodaj jakieś!</MudText>
+        }
+        </MudContainer>
+
+}
+
+@code {
+    private List<CommentaryDTO>? commentaries;
+    private bool downloadDataError = false;
+    private string errorMessage = "";
+
+    private UpdateCommentaryDTO updateCommentaryModel = new();
+    private bool editformHidden = true;
+    private bool isInvalid = false;
+    string uploadedImage = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
+    private async Task UploadImageToCommentary(InputFileChangeEventArgs args)
+    {
+        uploadedImage = await ImageHelper.InputFileToBase64(args);
+    }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetCommenteries();
+    }
+
+    private async Task GetCommenteries()
+    {
+        var getAllResponse = await _commentaryService.GetAllCommentaryAsync();
+        if (getAllResponse.Success)
+        {
+            downloadDataError = false;
+            errorMessage = "";
+            commentaries = getAllResponse.Data;
+            return;
+        }
+        HandleBadResult(getAllResponse.Message, true);
+    }
+
+    private void HandleBadResult(string errMsg, bool downloadDataErrorP)
+    {
+        if (downloadDataErrorP)
+        {
+            errorMessage = errMsg;
+            downloadDataError = true;
+        }
+        else
+        {
+            Snackbar.Add(errMsg, Severity.Error);
+        }
+    }
+
+    private void ToggleForm()
+    {
+       editformHidden = !editformHidden;
+    }
+
+    private async Task DeleteDialog(int Id)
+    {
+        var parameters = new DialogParameters();
+        parameters.Add("ContentText", "Czy na pewno chcesz usunąć tą relacje? Tej operacji nie można cofnąć!.");
+        parameters.Add("ButtonText", "Usuń");
+        parameters.Add("Color", Color.Error);
+
+        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+
+        var dialog = DialogService.Show<DialogTemplate>("Usuń relacje", parameters, options);
+        var result = await dialog.Result;
+        if (!result.Cancelled)
+        {
+            await HandleDelete(Id);
+        }
+
+    }
+
+    private async Task HandleDelete(int Id)
+    {
+        var deleteRes = await _commentaryService.DeleteCommentary(Id);
+        if (deleteRes.Success)
+        {
+            await GetCommenteries();
+            Snackbar.Add("Relacja została usunięta", Severity.Success);
+            return;
+        }
+        HandleBadResult(deleteRes.Message, false);
+    }
+
+    private async Task EditCommentary(int Id)
+    {
+        ToggleForm();
+        var getModel = await _commentaryService.GetByIdAsync(Id);
+        if (getModel.Success)
+        {
+            var singeComm = getModel.Data;
+            updateCommentaryModel = _mapper.Map<UpdateCommentaryDTO>(singeComm);
+            editformHidden = false;
+            return;
+        }
+        HandleBadResult(getModel.Message, false);
+        ToggleForm();
+    }
+
+    private async Task HandleValidEditSubmit()
+    {
+        ToggleForm();
+        var submitRes = await _commentaryService.UpdateCommentaryAsync(updateCommentaryModel);
+        if (submitRes.Success)
+        {
+            await GetCommenteries();
+            Snackbar.Add("Relacja została zaaktualizowana", Severity.Success);
+            return;
+        }
+        HandleBadResult(submitRes.Message, false);
+    }
+
+    private void StartNewRelation(){
+        _navigationManager.NavigateTo("addNewRelation");
+    }
+}

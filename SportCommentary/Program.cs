@@ -51,6 +51,9 @@ builder.Services.AddScoped<ISportTypeService, SportTypeService>();
 builder.Services.AddScoped<IEventsRepository, EventsRepository>();
 builder.Services.AddScoped<IEventService, EventService>();
 
+builder.Services.AddScoped<ICommentaryRepository, CommentaryRepository>();
+builder.Services.AddScoped<ICommentaryService, CommentaryService>();
+
 builder.Logging.AddLog4Net();
 
 builder.Services.AddAuthorization(options =>
