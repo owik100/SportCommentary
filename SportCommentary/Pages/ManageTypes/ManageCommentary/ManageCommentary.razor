@@ -5,7 +5,7 @@
 @using SportCommentary.Service.Interfaces
 @using SportCommentary.Components.ManageCommentary
 
-@page "/manageCommentary"
+@page "/manageCommentary/{liveOnly}"
 @attribute [Authorize(Roles = "Admin")]
 
 @inject ISnackbar Snackbar
@@ -15,7 +15,7 @@
 @inject NavigationManager _navigationManager
 
 @{
-    var title = "Zarządzaj relacjami";
+    string title = OnlyLive ? "Relacje live" : "Zarządzaj relacjami";
 }
 <PageHeaderTitle Title="@title"/>
 
@@ -77,6 +77,15 @@ else
 }
 
 @code {
+    [Parameter]
+    public string liveOnly { get; set; }
+
+    private bool OnlyLive { 
+        get{
+            return string.Equals(liveOnly, "live", StringComparison.OrdinalIgnoreCase);
+        }
+    } 
+
     private List<CommentaryDTO>? commentaries;
     private bool downloadDataError = false;
     private string errorMessage = "";
@@ -93,12 +102,40 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        await GetCommenteries();
+        if (OnlyLive)
+        {
+            await GetLiveCommenteries();
+        }
+        else{
+            await GetCommenteries();
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (OnlyLive)
+        {
+            commentaries = null;
+            await GetLiveCommenteries();
+        }
     }
 
     private async Task GetCommenteries()
     {
         var getAllResponse = await _commentaryService.GetAllCommentaryAsync();
+        if (getAllResponse.Success)
+        {
+            downloadDataError = false;
+            errorMessage = "";
+            commentaries = getAllResponse.Data;
+            return;
+        }
+        HandleBadResult(getAllResponse.Message, true);
+    }
+
+    private async Task GetLiveCommenteries()
+    {
+        var getAllResponse = await _commentaryService.GetAllCommentaryLiveAsync();
         if (getAllResponse.Success)
         {
             downloadDataError = false;
@@ -124,7 +161,8 @@ else
 
     private void ToggleForm()
     {
-       editformHidden = !editformHidden;
+        uploadedImage = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
+        editformHidden = !editformHidden;
     }
 
     private async Task DeleteDialog(int Id)
@@ -165,6 +203,13 @@ else
         {
             var singeComm = getModel.Data;
             updateCommentaryModel = _mapper.Map<UpdateCommentaryDTO>(singeComm);
+            if (string.IsNullOrEmpty(updateCommentaryModel.CommentaryImage))
+            {
+                uploadedImage = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
+            }
+            else{
+                uploadedImage = updateCommentaryModel.CommentaryImage;
+            }
             editformHidden = false;
             return;
         }
@@ -174,6 +219,9 @@ else
 
     private async Task HandleValidEditSubmit()
     {
+        if (uploadedImage != "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="){
+            updateCommentaryModel.CommentaryImage = uploadedImage;
+        }
         ToggleForm();
         var submitRes = await _commentaryService.UpdateCommentaryAsync(updateCommentaryModel);
         if (submitRes.Success)

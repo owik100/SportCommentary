@@ -8,17 +8,23 @@
         </ToolBarContent>
              <ColGroup>
                  <col style="width: 5%" />
-                  <col />
-                <col style="width: 250px" />
-                </ColGroup>
+                 <col style="width: 5%" />
+                 <col style="width: 200px" />
+                 <col />
+                 <col style="width: 250px" />
+             </ColGroup>
         <HeaderContent>
            <MudTh><MudTableSortLabel SortBy="new Func<CommentaryDTO, object>(x=>GetRowNumber(x))">Lp.</MudTableSortLabel></MudTh>
+           <MudTh><MudTableSortLabel SortBy="new Func<CommentaryDTO, object>(x=>x.IsLive)">Live</MudTableSortLabel></MudTh>
            <MudTh><MudTableSortLabel SortBy="new Func<CommentaryDTO, object>(x=>x.Caption)">Nazwa</MudTableSortLabel></MudTh>
+           <MudTh><MudTableSortLabel SortBy="new Func<CommentaryDTO, object>(x=>x.CommentaryStart)">Data rozpoczęcia</MudTableSortLabel></MudTh>
            <MudTh>Akcje</MudTh>
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="Lp.">@(GetRowNumber(context))</MudTd>
+                        <MudTd DataLabel="Live"> <MudCheckBox @bind-Checked="@context.IsLive" Color="Color.Primary" ReadOnly="true"></MudCheckBox></MudTd>
                         <MudTd DataLabel="Nazwa">@context.Caption</MudTd>
+                        <MudTd DataLabel="Data rozpoczęcia">@context.CommentaryStart</MudTd>
                         <MudTd DataLabel="Akcje">
                                <MudButton class="mr-2" Variant="Variant.Filled" @onclick="(()=> OnEditClick.InvokeAsync(context.CommentaryID))" StartIcon="@Icons.Material.Filled.Edit" Color="Color.Secondary">Edytuj</MudButton>
                                    <MudButton Variant="Variant.Filled" @onclick="(()=> OnDeleteClick.InvokeAsync(context.CommentaryID))" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error">Usuń</MudButton>
