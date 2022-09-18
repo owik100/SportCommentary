@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.Extensions.Caching.Memory;
 using SportCommentary.Repository.Interfaces;
 using SportCommentary.Service.Interfaces;
 using SportCommentaryDataAccess;
@@ -6,6 +7,7 @@ using SportCommentaryDataAccess.DTO;
 using SportCommentaryDataAccess.DTO.Commentary;
 using SportCommentaryDataAccess.DTO.SportType;
 using SportCommentaryDataAccess.Entities;
+using System.Reflection;
 
 namespace SportCommentary.Service
 {
@@ -13,10 +15,13 @@ namespace SportCommentary.Service
     {
         private readonly ISportTypeRepository _sportTypeRepo;
         private readonly IMapper _mapper;
-        public SportTypeService(IMapper mapper, ISportTypeRepository sportTypeRepo)
+        private readonly IMemoryCache _memoryCache;
+
+        public SportTypeService(IMapper mapper, ISportTypeRepository sportTypeRepo, IMemoryCache memoryCache)
         {
             _mapper = mapper;
             _sportTypeRepo = sportTypeRepo;
+            _memoryCache = memoryCache;
         }
         public async Task<ServiceResponse<SportTypeDTO>> AddSportTypeAsync(CreateSportTypeDTO createSportTypeDTO)
         {
@@ -44,6 +49,20 @@ namespace SportCommentary.Service
                 response.Success = true;
                 response.Data = _mapper.Map<SportTypeDTO>(newSportType);
                 response.Message = "Created";
+
+                List<SportTypeDTO> sportsTypeDTOList = new List<SportTypeDTO>();
+                if (_memoryCache.TryGetValue("AllSportTypes", out sportsTypeDTOList))
+                {
+                    if(sportsTypeDTOList != null)
+                    {
+                        sportsTypeDTOList.Add(response.Data);
+                        MemoryCacheEntryOptions cacheOptions = new MemoryCacheEntryOptions()
+                            .SetAbsoluteExpiration(TimeSpan.FromMinutes(1))
+                            .SetSlidingExpiration(TimeSpan.FromMinutes(5))
+                            .SetSize(1024);
+                        _memoryCache.Set("AllSportTypes", sportsTypeDTOList, cacheOptions);
+                    }
+                }
 
             }
             catch (Exception ex)
@@ -81,6 +100,19 @@ namespace SportCommentary.Service
 
                 _response.Success = true;
                 _response.Message = "Deleted";
+                List<SportTypeDTO> sportsTypeDTOList = new List<SportTypeDTO>();
+                if (_memoryCache.TryGetValue("AllSportTypes", out sportsTypeDTOList))
+                {
+                    if (sportsTypeDTOList != null)
+                    {
+                        sportsTypeDTOList.RemoveAll(x => x.SportTypeID == Id);
+                        MemoryCacheEntryOptions cacheOptions = new MemoryCacheEntryOptions()
+                            .SetAbsoluteExpiration(TimeSpan.FromMinutes(1))
+                            .SetSlidingExpiration(TimeSpan.FromMinutes(5))
+                            .SetSize(1024);
+                        _memoryCache.Set("AllSportTypes", sportsTypeDTOList, cacheOptions);
+                    }
+                }
 
             }
             catch (Exception ex)
@@ -98,13 +130,21 @@ namespace SportCommentary.Service
             ServiceResponse<List<SportTypeDTO>> _response = new();
             try
             {
-                ICollection<SportType> Sports = await _sportTypeRepo.GetAllSportTypesAsync();
+                MemoryCacheEntryOptions cacheOptions = new MemoryCacheEntryOptions()
+                    .SetAbsoluteExpiration(TimeSpan.FromMinutes(1))
+                    .SetSlidingExpiration(TimeSpan.FromMinutes(5))
+                    .SetSize(1024);
 
                 List<SportTypeDTO> sportsTypeDTOList = new List<SportTypeDTO>();
-
-                foreach (var item in Sports)
+                if (!_memoryCache.TryGetValue("AllSportTypes", out sportsTypeDTOList))
                 {
-                    sportsTypeDTOList.Add(_mapper.Map<SportTypeDTO>(item));
+                    ICollection<SportType> Sports = await _sportTypeRepo.GetAllSportTypesAsync();
+                    sportsTypeDTOList = new List<SportTypeDTO>();
+                    foreach (var item in Sports)
+                    {
+                        sportsTypeDTOList.Add(_mapper.Map<SportTypeDTO>(item));
+                    }
+                    _memoryCache.Set("AllSportTypes", sportsTypeDTOList, cacheOptions);
                 }
 
                 _response.Success = true;
@@ -186,6 +226,24 @@ namespace SportCommentary.Service
                 _response.Success = true;
                 _response.Message = "Updated";
                 _response.Data = sportTypeDTO;
+
+                List<SportTypeDTO> sportsTypeDTOList = new List<SportTypeDTO>();
+                if (_memoryCache.TryGetValue("AllSportTypes", out sportsTypeDTOList))
+                {
+                    if (sportsTypeDTOList != null)
+                    {
+                        SportTypeDTO oldSportInCache = sportsTypeDTOList.Find(x => x.SportTypeID == updateSportTypeDTO.SportTypeID);
+                        foreach (PropertyInfo property in typeof(SportTypeDTO).GetProperties().Where(p => p.CanWrite))
+                        {
+                            property.SetValue(oldSportInCache, property.GetValue(sportTypeDTO, null), null);
+                        }
+                        MemoryCacheEntryOptions cacheOptions = new MemoryCacheEntryOptions()
+                            .SetAbsoluteExpiration(TimeSpan.FromMinutes(1))
+                            .SetSlidingExpiration(TimeSpan.FromMinutes(5))
+                            .SetSize(1024);
+                        _memoryCache.Set("AllSportTypes", sportsTypeDTOList, cacheOptions);
+                    }
+                }
 
             }
             catch (Exception ex)

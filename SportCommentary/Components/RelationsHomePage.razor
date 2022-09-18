@@ -20,6 +20,9 @@ else{
   <div class="row row-cols-1 row-cols-md-3 g-4">
     @foreach (var comm in commentaries)
     {
+            if (string.IsNullOrEmpty(comm.CommentaryImage)){
+                comm.CommentaryImage = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
+            }
       <div class="col">
         <div class="card h-100">
           <img src="@comm.CommentaryImage" class="card-img-top" alt="commentary image">

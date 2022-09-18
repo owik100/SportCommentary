@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.Extensions.Caching.Memory;
 using SportCommentary.Repository.Interfaces;
 using SportCommentary.Service.Interfaces;
 using SportCommentaryDataAccess;
@@ -6,6 +7,7 @@ using SportCommentaryDataAccess.DTO.Commentary;
 using SportCommentaryDataAccess.DTO.Event;
 using SportCommentaryDataAccess.DTO.SportType;
 using SportCommentaryDataAccess.Entities;
+using System.Reflection;
 
 namespace SportCommentary.Service
 {
@@ -13,10 +15,12 @@ namespace SportCommentary.Service
     {
         private readonly ICommentaryRepository _commentaryRepository;
         private readonly IMapper _mapper;
-        public CommentaryService(IMapper mapper, ICommentaryRepository commentaryRepository)
+        private readonly IMemoryCache _memoryCache;
+        public CommentaryService(IMapper mapper, ICommentaryRepository commentaryRepository, IMemoryCache memoryCache)
         {
             _mapper = mapper;
             _commentaryRepository = commentaryRepository;
+            _memoryCache = memoryCache;
         }
         public async Task<ServiceResponse<CommentaryDTO>> AddCommentaryAsync(CreateCommentaryDTO createCommentaryDTO)
         {
@@ -46,6 +50,20 @@ namespace SportCommentary.Service
                 response.Success = true;
                 response.Data = _mapper.Map<CommentaryDTO>(newCommentary);
                 response.Message = "Created";
+
+                List<CommentaryDTO> CommentaryDTOList = new List<CommentaryDTO>();
+                if (_memoryCache.TryGetValue("AllCommentary", out CommentaryDTOList))
+                {
+                    if (CommentaryDTOList != null)
+                    {
+                        CommentaryDTOList.Add(response.Data);
+                        MemoryCacheEntryOptions cacheOptions = new MemoryCacheEntryOptions()
+                            .SetAbsoluteExpiration(TimeSpan.FromMinutes(1))
+                            .SetSlidingExpiration(TimeSpan.FromMinutes(5))
+                            .SetSize(1024);
+                        _memoryCache.Set("AllEvents", CommentaryDTOList, cacheOptions);
+                    }
+                }
 
             }
             catch (Exception ex)
@@ -84,6 +102,20 @@ namespace SportCommentary.Service
                 _response.Success = true;
                 _response.Message = "Deleted";
 
+                List<CommentaryDTO> CommentaryDTOList = new List<CommentaryDTO>();
+                if (_memoryCache.TryGetValue("AllCommentary", out CommentaryDTOList))
+                {
+                    if (CommentaryDTOList != null)
+                    {
+                        CommentaryDTOList.RemoveAll(x => x.CommentaryID == Id);
+                        MemoryCacheEntryOptions cacheOptions = new MemoryCacheEntryOptions()
+                            .SetAbsoluteExpiration(TimeSpan.FromMinutes(1))
+                            .SetSlidingExpiration(TimeSpan.FromMinutes(5))
+                            .SetSize(1024);
+                        _memoryCache.Set("AllCommentary", CommentaryDTOList, cacheOptions);
+                    }
+                }
+
             }
             catch (Exception ex)
             {
@@ -100,18 +132,27 @@ namespace SportCommentary.Service
             ServiceResponse<List<CommentaryDTO>> _response = new();
             try
             {
-                ICollection<Commentary> Comments = await _commentaryRepository.GetAllCommentaryAsync();
+                MemoryCacheEntryOptions cacheOptions = new MemoryCacheEntryOptions()
+                   .SetAbsoluteExpiration(TimeSpan.FromMinutes(1))
+                   .SetSlidingExpiration(TimeSpan.FromMinutes(5))
+                   .SetSize(1024);
 
-                List<CommentaryDTO> commentsDTOList = new List<CommentaryDTO>();
-
-                foreach (var item in Comments)
+                List<CommentaryDTO> CommentaryDTOList = new List<CommentaryDTO>();
+                if (!_memoryCache.TryGetValue("AllCommentary", out CommentaryDTOList))
                 {
-                    commentsDTOList.Add(_mapper.Map<CommentaryDTO>(item));
+                    CommentaryDTOList = new List<CommentaryDTO>();
+                    ICollection<Commentary> Comments = await _commentaryRepository.GetAllCommentaryAsync();
+                    foreach (var item in Comments)
+                    {
+                        CommentaryDTOList.Add(_mapper.Map<CommentaryDTO>(item));
+                    }
+                    _memoryCache.Set("AllCommentary", CommentaryDTOList, cacheOptions);
                 }
+                    
 
                 _response.Success = true;
                 _response.Message = "ok";
-                _response.Data = commentsDTOList;
+                _response.Data = CommentaryDTOList;
 
             }
             catch (Exception ex)
@@ -130,18 +171,26 @@ namespace SportCommentary.Service
             ServiceResponse<List<CommentaryDTO>> _response = new();
             try
             {
-                ICollection<Commentary> Comments = await _commentaryRepository.GetAllCommentaryLiveAsync();
+                MemoryCacheEntryOptions cacheOptions = new MemoryCacheEntryOptions()
+                  .SetAbsoluteExpiration(TimeSpan.FromMinutes(1))
+                  .SetSlidingExpiration(TimeSpan.FromMinutes(5))
+                  .SetSize(1024);
 
-                List<CommentaryDTO> commentsDTOList = new List<CommentaryDTO>();
-
-                foreach (var item in Comments)
+                List<CommentaryDTO> CommentaryDTOList = new List<CommentaryDTO>();
+                if (!_memoryCache.TryGetValue("LiveCommentary", out CommentaryDTOList))
                 {
-                    commentsDTOList.Add(_mapper.Map<CommentaryDTO>(item));
+                    CommentaryDTOList = new List<CommentaryDTO>();
+                    ICollection<Commentary> Comments = await _commentaryRepository.GetAllCommentaryLiveAsync();
+                    foreach (var item in Comments)
+                    {
+                        CommentaryDTOList.Add(_mapper.Map<CommentaryDTO>(item));
+                    }
+                    _memoryCache.Set("LiveCommentary", CommentaryDTOList, cacheOptions);
                 }
 
                 _response.Success = true;
                 _response.Message = "ok";
-                _response.Data = commentsDTOList;
+                _response.Data = CommentaryDTOList;
 
             }
             catch (Exception ex)
@@ -218,6 +267,24 @@ namespace SportCommentary.Service
                 _response.Success = true;
                 _response.Message = "Updated";
                 _response.Data = commentaryDTO;
+
+                List<CommentaryDTO> CommentaryCache = new List<CommentaryDTO>();
+                if (_memoryCache.TryGetValue("AllCommentary", out CommentaryCache))
+                {
+                    if (CommentaryCache != null)
+                    {
+                        CommentaryDTO oldCommentaryInCache = CommentaryCache.Find(x => x.CommentaryID == updateCommentaryDTO.CommentaryID);
+                        foreach (PropertyInfo property in typeof(CommentaryDTO).GetProperties().Where(p => p.CanWrite))
+                        {
+                            property.SetValue(oldCommentaryInCache, property.GetValue(commentaryDTO, null), null);
+                        }
+                        MemoryCacheEntryOptions cacheOptions = new MemoryCacheEntryOptions()
+                            .SetAbsoluteExpiration(TimeSpan.FromMinutes(1))
+                            .SetSlidingExpiration(TimeSpan.FromMinutes(5))
+                            .SetSize(1024);
+                        _memoryCache.Set("AllCommentary", CommentaryCache, cacheOptions);
+                    }
+                }
 
             }
             catch (Exception ex)
