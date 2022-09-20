@@ -9,7 +9,7 @@ namespace SportCommentary.Service.Interfaces
         /// Return all commentary.
         /// </summary>
         /// <returns>List Of CommentaryDTO</returns>
-        Task<ServiceResponse<List<CommentaryDTO>>> GetAllCommentaryAsync();
+        Task<ServiceResponse<PagedList<CommentaryDTO>>> GetAllCommentaryAsync(int pageNumber = 1, int pageSize = 10);
         /// <summary>
         /// Return CommentaryDTO record.
         /// </summary>
@@ -40,6 +40,6 @@ namespace SportCommentary.Service.Interfaces
         /// <param name="Id"></param>
         /// <returns>SportTypeDTO</returns>
         /// 
-        Task<ServiceResponse<List<CommentaryDTO>>> GetAllCommentaryLiveAsync();
+        Task<ServiceResponse<PagedList<CommentaryDTO>>> GetAllCommentaryLiveAsync(int pageNumber = 1, int pageSize = 10);
     }
 }

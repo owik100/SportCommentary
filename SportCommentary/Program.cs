@@ -9,6 +9,7 @@ using MudBlazor;
 using MudBlazor.Services;
 using SportCommentary.Areas.Identity;
 using SportCommentary.Data;
+using SportCommentary.Helpers;
 using SportCommentary.Repository;
 using SportCommentary.Repository.Interfaces;
 using SportCommentary.Service;
@@ -54,6 +55,8 @@ builder.Services.AddScoped<IEventService, EventService>();
 
 builder.Services.AddScoped<ICommentaryRepository, CommentaryRepository>();
 builder.Services.AddScoped<ICommentaryService, CommentaryService>();
+
+builder.Services.AddSingleton<IPaginationHelper, PaginationHelper>();
 
 builder.Logging.AddLog4Net();
 

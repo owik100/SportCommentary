@@ -1,6 +1,7 @@
-﻿@using SportCommentaryDataAccess.DTO.Commentary
+﻿@using SportCommentaryDataAccess
+@using SportCommentaryDataAccess.DTO.Commentary
 
-  <MudTable SortLabel="Sortuj według" Striped Items="@comments" Hover="true" Breakpoint="Breakpoint.Xs"  Loading="@(comments == null)" LoadingProgressColor="Color.Info" Filter="new Func<CommentaryDTO ,bool>(FilterFunc)">
+  <MudTable SortLabel="Sortuj według" Striped Items="@comments.Items" Hover="true" Breakpoint="Breakpoint.Xs"  Loading="@(comments == null)" LoadingProgressColor="Color.Info" Filter="new Func<CommentaryDTO ,bool>(FilterFunc)">
         <ToolBarContent>
             <MudText Typo="Typo.h6">Relacje</MudText>
             <MudSpacer />
@@ -32,16 +33,21 @@
                     </RowTemplate>
                 </MudTable>
 
-
+                <MudPagination SelectedChanged="PageChanged" Class="mt-5" Color="Color.Primary" Count="comments.TotalPages" />
     @code {
     [Parameter]
-    public List<CommentaryDTO>? comments { get; set; }
+    public PagedList<CommentaryDTO>? comments { get; set; }
 
     [Parameter]
     public EventCallback<int> OnEditClick { get; set; }
 
     [Parameter]
     public EventCallback<int> OnDeleteClick { get; set; }
+
+    [Parameter]
+    public EventCallback<int> OnPageChange { get; set; }
+
+    private int selectedPage = 1;
 
     private string searchString = "";
     private bool FilterFunc(CommentaryDTO element) => FilterFuncWithSearch(element, searchString);
@@ -56,6 +62,11 @@
     }
 
     private int? GetRowNumber(object element) =>
-       comments?.TakeWhile(x => x != element).Count() + 1;
+       comments?.Items.TakeWhile(x => x != element).Count() + 1;
+
+    private void PageChanged(int i)
+    {
+        OnPageChange.InvokeAsync(i);
+    }
 
 }

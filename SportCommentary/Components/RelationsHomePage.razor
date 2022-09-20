@@ -1,10 +1,9 @@
 ﻿@using SportCommentary.Service.Interfaces
+@using SportCommentaryDataAccess
 @using SportCommentaryDataAccess.DTO.Commentary
 
 @inject ICommentaryService _commentaryService
 @inject ISnackbar Snackbar
-
-<h3>RelationsHomePage</h3>
 
 @if (downloadDataError)
 {
@@ -17,8 +16,9 @@ else if (commentaries == null)
             </MudContainer>
 }
 else{
+        <MudPagination SelectedChanged="OnPageChange" Class="mb-5 mt-5" Color="Color.Primary" Count="commentaries.TotalPages" />
   <div class="row row-cols-1 row-cols-md-3 g-4">
-    @foreach (var comm in commentaries)
+    @foreach (var comm in commentaries.Items)
     {
             if (string.IsNullOrEmpty(comm.CommentaryImage)){
                 comm.CommentaryImage = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
@@ -34,22 +34,23 @@ else{
       </div>
     }
    </div>
+           
 }
 
 @code {
-    private List<CommentaryDTO>? commentaries;
+    private PagedList<CommentaryDTO>? commentaries;
     private bool downloadDataError = false;
     private string errorMessage = "";
 
     protected override async Task OnInitializedAsync()
     {
-         await GetCommenteries();
+         await GetCommenteries(1);
     }
 
 
-    private async Task GetCommenteries()
+    private async Task GetCommenteries(int id)
     {
-        var getAllResponse = await _commentaryService.GetAllCommentaryAsync();
+        var getAllResponse = await _commentaryService.GetAllCommentaryAsync(id);
         if (getAllResponse.Success)
         {
             downloadDataError = false;
@@ -71,5 +72,10 @@ else{
         {
             Snackbar.Add(errMsg, Severity.Error);
         }
+    }
+
+    private async Task OnPageChange(int Id)
+    {
+        await GetCommenteries(Id);
     }
 }

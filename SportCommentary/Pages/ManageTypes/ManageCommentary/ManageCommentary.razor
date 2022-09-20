@@ -1,6 +1,7 @@
 ﻿@using AutoMapper
 @using SportCommentary.Components
 @using SportCommentary.Helpers
+@using SportCommentaryDataAccess
 @using SportCommentaryDataAccess.DTO.Commentary
 @using SportCommentary.Service.Interfaces
 @using SportCommentary.Components.ManageCommentary
@@ -66,11 +67,11 @@ else
              </EditForm>
         }
 
-            <ManageCommentaryTable comments="commentaries" OnEditClick="EditCommentary" OnDeleteClick="DeleteDialog"/>
+                <ManageCommentaryTable OnPageChange="OnPageChange" comments="commentaries" OnEditClick="EditCommentary" OnDeleteClick="DeleteDialog"/>
 
-        @if (commentaries?.Count == 0)
+        @if (commentaries?.TotalItems == 0)
         {
-            <MudText Class="mt-3" Align="Align.Center" Typo="Typo.h4">Brak wydarzeń. Dodaj jakieś!</MudText>
+            <MudText Class="mt-3" Align="Align.Center" Typo="Typo.h4">Brak relacji. Dodaj jakieś!</MudText>
         }
         </MudContainer>
 
@@ -86,7 +87,7 @@ else
         }
     } 
 
-    private List<CommentaryDTO>? commentaries;
+    private PagedList<CommentaryDTO>? commentaries;
     private bool downloadDataError = false;
     private string errorMessage = "";
 
@@ -120,9 +121,9 @@ else
         }
     }
 
-    private async Task GetCommenteries()
+    private async Task GetCommenteries(int page = 1)
     {
-        var getAllResponse = await _commentaryService.GetAllCommentaryAsync();
+        var getAllResponse = await _commentaryService.GetAllCommentaryAsync(page);
         if (getAllResponse.Success)
         {
             downloadDataError = false;
@@ -133,9 +134,9 @@ else
         HandleBadResult(getAllResponse.Message, true);
     }
 
-    private async Task GetLiveCommenteries()
+    private async Task GetLiveCommenteries(int page = 1)
     {
-        var getAllResponse = await _commentaryService.GetAllCommentaryLiveAsync();
+        var getAllResponse = await _commentaryService.GetAllCommentaryLiveAsync(page);
         if (getAllResponse.Success)
         {
             downloadDataError = false;
@@ -235,5 +236,15 @@ else
 
     private void StartNewRelation(){
         _navigationManager.NavigateTo("addNewRelation");
+    }
+
+    private async Task OnPageChange(int Id)
+    {
+        if(OnlyLive){
+            await GetLiveCommenteries(Id);
+        }
+        else{
+            await GetCommenteries(Id);
+        }
     }
 }

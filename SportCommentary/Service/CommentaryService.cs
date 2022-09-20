@@ -1,5 +1,8 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using SportCommentary.Helpers;
 using SportCommentary.Repository.Interfaces;
 using SportCommentary.Service.Interfaces;
 using SportCommentaryDataAccess;
@@ -7,7 +10,9 @@ using SportCommentaryDataAccess.DTO.Commentary;
 using SportCommentaryDataAccess.DTO.Event;
 using SportCommentaryDataAccess.DTO.SportType;
 using SportCommentaryDataAccess.Entities;
+using System.Linq;
 using System.Reflection;
+using static MudBlazor.CategoryTypes;
 
 namespace SportCommentary.Service
 {
@@ -16,11 +21,13 @@ namespace SportCommentary.Service
         private readonly ICommentaryRepository _commentaryRepository;
         private readonly IMapper _mapper;
         private readonly IMemoryCache _memoryCache;
-        public CommentaryService(IMapper mapper, ICommentaryRepository commentaryRepository, IMemoryCache memoryCache)
+        private readonly IPaginationHelper _paginationHelper;
+        public CommentaryService(IMapper mapper, ICommentaryRepository commentaryRepository, IMemoryCache memoryCache, IPaginationHelper paginationHelper)
         {
             _mapper = mapper;
             _commentaryRepository = commentaryRepository;
             _memoryCache = memoryCache;
+            _paginationHelper = paginationHelper;
         }
         public async Task<ServiceResponse<CommentaryDTO>> AddCommentaryAsync(CreateCommentaryDTO createCommentaryDTO)
         {
@@ -127,11 +134,26 @@ namespace SportCommentary.Service
             return _response;
         }
 
-        public async Task<ServiceResponse<List<CommentaryDTO>>> GetAllCommentaryAsync()
+        public async Task<ServiceResponse<PagedList<CommentaryDTO>>> GetAllCommentaryAsync(int pageNumber, int pageSize)
         {
-            ServiceResponse<List<CommentaryDTO>> _response = new();
+            ServiceResponse<PagedList<CommentaryDTO>> _response = new();
+            List<CommentaryDTO> responseCommentaryDTOList = new List<CommentaryDTO>();
             try
             {
+
+                if (pageNumber <= 0)
+                    pageNumber = 1;
+
+                int skip = (pageNumber - 1) * pageSize;
+                int take = pageSize;
+                int count = await _commentaryRepository.CountAllCommentaryAsync(false);
+
+                int totalPages = _paginationHelper.CalculateTotalPages(count, pageSize);
+
+                List<int> requestIDs = (List<int>)await _commentaryRepository.GetSpecificIDs(skip, take, false);
+
+
+
                 MemoryCacheEntryOptions cacheOptions = new MemoryCacheEntryOptions()
                    .SetAbsoluteExpiration(TimeSpan.FromMinutes(1))
                    .SetSlidingExpiration(TimeSpan.FromMinutes(5))
@@ -141,18 +163,36 @@ namespace SportCommentary.Service
                 if (!_memoryCache.TryGetValue("AllCommentary", out CommentaryDTOList))
                 {
                     CommentaryDTOList = new List<CommentaryDTO>();
-                    ICollection<Commentary> Comments = await _commentaryRepository.GetAllCommentaryAsync();
+                    ICollection<Commentary> Comments = await _commentaryRepository.GetAllCommentaryAsync(requestIDs);
                     foreach (var item in Comments)
                     {
                         CommentaryDTOList.Add(_mapper.Map<CommentaryDTO>(item));
                     }
-                    _memoryCache.Set("AllCommentary", CommentaryDTOList, cacheOptions);
                 }
-                    
+                else
+                {
+                    foreach (var id in requestIDs)
+                    {
+                        if(!CommentaryDTOList.Any(x => x.CommentaryID == id)){
+                            Commentary newComm = await _commentaryRepository.GetCommentaryByIdAsync(id);
+                            CommentaryDTOList.Add(_mapper.Map<CommentaryDTO>(newComm));
+                        }
+                    }
+                }
+                _memoryCache.Set("AllCommentary", CommentaryDTOList, cacheOptions);
 
+                foreach (var item in CommentaryDTOList)
+                {
+                    if (requestIDs.Contains(item.CommentaryID))
+                    {
+                        responseCommentaryDTOList.Add(item);
+                    }
+                }
+
+                responseCommentaryDTOList = responseCommentaryDTOList.OrderByDescending(x => x.CommentaryStart).ToList();
                 _response.Success = true;
                 _response.Message = "ok";
-                _response.Data = CommentaryDTOList;
+                _response.Data = new PagedList<CommentaryDTO>() { CurrentPage = pageNumber, Items = responseCommentaryDTOList, PageSize = pageSize, TotalItems = count };
 
             }
             catch (Exception ex)
@@ -166,31 +206,70 @@ namespace SportCommentary.Service
             return _response;
         }
 
-        public async Task<ServiceResponse<List<CommentaryDTO>>> GetAllCommentaryLiveAsync()
+        public async Task<ServiceResponse<PagedList<CommentaryDTO>>> GetAllCommentaryLiveAsync(int pageNumber = 1, int pageSize = 10)
         {
-            ServiceResponse<List<CommentaryDTO>> _response = new();
+            ServiceResponse<PagedList<CommentaryDTO>> _response = new();
+            List<CommentaryDTO> responseCommentaryDTOList = new List<CommentaryDTO>();
             try
             {
+                if (pageNumber <= 0)
+                    pageNumber = 1;
+
+                int skip = (pageNumber - 1) * pageSize;
+                int take = pageSize;
+                int count = await _commentaryRepository.CountAllCommentaryAsync(true);
+
+                int totalPages = _paginationHelper.CalculateTotalPages(count, pageSize);
+
+                List<int> requestIDs = (List<int>)await _commentaryRepository.GetSpecificIDs(skip, take, true);
+
                 MemoryCacheEntryOptions cacheOptions = new MemoryCacheEntryOptions()
                   .SetAbsoluteExpiration(TimeSpan.FromMinutes(1))
                   .SetSlidingExpiration(TimeSpan.FromMinutes(5))
                   .SetSize(1024);
 
                 List<CommentaryDTO> CommentaryDTOList = new List<CommentaryDTO>();
-                if (!_memoryCache.TryGetValue("LiveCommentary", out CommentaryDTOList))
+                if (!_memoryCache.TryGetValue("AllCommentary", out CommentaryDTOList))
                 {
                     CommentaryDTOList = new List<CommentaryDTO>();
-                    ICollection<Commentary> Comments = await _commentaryRepository.GetAllCommentaryLiveAsync();
+                    ICollection<Commentary> Comments = await _commentaryRepository.GetAllCommentaryLiveAsync(requestIDs);
                     foreach (var item in Comments)
                     {
                         CommentaryDTOList.Add(_mapper.Map<CommentaryDTO>(item));
                     }
-                    _memoryCache.Set("LiveCommentary", CommentaryDTOList, cacheOptions);
+                }
+                else
+                {
+                    foreach (var id in requestIDs)
+                    {
+                        if (!CommentaryDTOList.Any(x => x.CommentaryID == id))
+                        {
+                            Commentary newComm = await _commentaryRepository.GetCommentaryByIdAsync(id);
+                            CommentaryDTOList.Add(_mapper.Map<CommentaryDTO>(newComm));
+                        }
+                    }
+                }
+                _memoryCache.Set("AllCommentary", CommentaryDTOList, cacheOptions);
+
+                foreach (var item in CommentaryDTOList.ToList())
+                {
+                    if (!requestIDs.Contains(item.CommentaryID)){
+                        CommentaryDTOList.Remove(item);
+                    }
                 }
 
+                foreach (var item in CommentaryDTOList)
+                {
+                    if (requestIDs.Contains(item.CommentaryID))
+                    {
+                        responseCommentaryDTOList.Add(item);
+                    }
+                }
+
+                responseCommentaryDTOList = responseCommentaryDTOList.OrderByDescending(x => x.CommentaryStart).ToList();
                 _response.Success = true;
                 _response.Message = "ok";
-                _response.Data = CommentaryDTOList;
+                _response.Data = new PagedList<CommentaryDTO>() { CurrentPage = pageNumber, Items = CommentaryDTOList, PageSize = pageSize, TotalItems = count };
 
             }
             catch (Exception ex)
