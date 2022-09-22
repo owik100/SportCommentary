@@ -23,11 +23,12 @@ else{
             if (string.IsNullOrEmpty(comm.CommentaryImage)){
                 comm.CommentaryImage = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
             }
-      <div class="col">
+            string hrefToSingle = $"/commentary/{comm.CommentaryID}";
+            <div class="col">
         <div class="card h-100">
           <img src="@comm.CommentaryImage" class="card-img-top" alt="commentary image">
           <div class="card-body">
-            <h5 class="card-title">@comm.Caption</h5>
+          <a href=@hrefToSingle class="card-title">@comm.Caption</a>
             <p class="card-text">@comm.Description</p>
           </div>
         </div>

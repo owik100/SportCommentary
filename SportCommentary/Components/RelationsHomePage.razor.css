@@ -3,3 +3,8 @@
     height: 15vw;
     object-fit: cover;
 }
+
+a {
+    font-size: 22px;
+    font-weight: 500;
+}

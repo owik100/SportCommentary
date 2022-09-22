@@ -1,5 +1,6 @@
 ﻿@using SportCommentaryDataAccess
 @using SportCommentaryDataAccess.DTO.Commentary
+@inject NavigationManager _navigationManager
 
   <MudTable SortLabel="Sortuj według" Striped Items="@comments.Items" Hover="true" Breakpoint="Breakpoint.Xs"  Loading="@(comments == null)" LoadingProgressColor="Color.Info" Filter="new Func<CommentaryDTO ,bool>(FilterFunc)">
         <ToolBarContent>
@@ -24,7 +25,9 @@
         <RowTemplate>
             <MudTd DataLabel="Lp.">@(GetRowNumber(context))</MudTd>
                         <MudTd DataLabel="Live"> <MudCheckBox @bind-Checked="@context.IsLive" Color="Color.Primary" ReadOnly="true"></MudCheckBox></MudTd>
-                        <MudTd DataLabel="Nazwa">@context.Caption</MudTd>
+                        <MudTd Style="cursor:pointer"  @onclick="()=>MoveToCommentary(context.CommentaryID)" DataLabel="Nazwa">
+                            @context.Caption
+                        </MudTd>
                         <MudTd DataLabel="Data rozpoczęcia">@context.CommentaryStart</MudTd>
                         <MudTd DataLabel="Akcje">
                                <MudButton class="mr-2" Variant="Variant.Filled" @onclick="(()=> OnEditClick.InvokeAsync(context.CommentaryID))" StartIcon="@Icons.Material.Filled.Edit" Color="Color.Secondary">Edytuj</MudButton>
@@ -69,4 +72,7 @@
         OnPageChange.InvokeAsync(i);
     }
 
+    private void MoveToCommentary(int id){
+        _navigationManager.NavigateTo($"/commentary/{id}");
+    }
 }

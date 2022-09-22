@@ -1,0 +1,69 @@
+﻿@page "/commentary/{id}"
+@using SportCommentary.Service.Interfaces
+@using SportCommentaryDataAccess.DTO.Commentary
+@using SportCommentary.Components
+
+@inject ISnackbar Snackbar
+@inject ICommentaryService _commentaryService
+
+@{
+    var title = "Zarządzaj sportami";
+}
+<PageHeaderTitle Title="@title"/>
+
+
+@if (downloadDataError)
+{
+                <DownladDataError ErrorMessage="@errorMessage" RefreshPage="/manageCommentary"/>
+}
+else if (commentary == null)
+{
+            <MudContainer Class="d-flex justify-center">
+                <MudProgressCircular  Color="Color.Primary" Indeterminate="true"/> 
+            </MudContainer>
+}
+else
+{
+     <MudCard Class="mr-3">
+        <MudCardContent>
+            <MudText Typo="Typo.h5">@commentary.Caption</MudText>
+            <MudText Typo="Typo.body2">@commentary.Description</MudText>
+        </MudCardContent>
+    </MudCard>
+
+    <CommentaryLive/>
+}
+@code {
+    [Parameter]
+    public string id { get; set; }
+
+    private CommentaryDTO? commentary;
+    private bool downloadDataError = false;
+    private string errorMessage = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var getAllResponse = await _commentaryService.GetByIdAsync(Convert.ToInt32(id));
+        if (getAllResponse.Success)
+        {
+            downloadDataError = false;
+            errorMessage = "";
+            commentary = getAllResponse.Data;
+            return;
+        }
+        HandleBadResult(getAllResponse.Message, true);
+    }
+
+    private void HandleBadResult(string errMsg, bool downloadDataErrorP)
+    {
+        if (downloadDataErrorP)
+        {
+            errorMessage = errMsg;
+            downloadDataError = true;
+        }
+        else
+        {
+            Snackbar.Add(errMsg, Severity.Error);
+        }
+    }
+}
