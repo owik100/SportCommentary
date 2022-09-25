@@ -1,5 +1,59 @@
-﻿<h3>CommentaryLive</h3>
+﻿@using SportCommentary.Service.Interfaces
+@using SportCommentaryDataAccess.DTO.SingleCommentary
+@inject ISingleCommentaryService _singleCommentaryService
+
+@if (downloadDataError)
+{
+                        <DownladDataError ErrorMessage="@errorMessage" RefreshPage="/commentary/{id}"/>
+}
+else if (singleComments == null)
+{
+                <MudContainer Class="d-flex justify-center">
+                    <MudProgressCircular  Color="Color.Primary" Indeterminate="true"/> 
+                </MudContainer>
+}
+else{
+    foreach (var singleComm in singleComments)
+    {
+        <MudContainer>
+        <MudCard Class="mt-4">
+        <MudCardContent>
+            <MudText Typo="Typo.h5">@singleComm.Title</MudText>
+            <MudText Typo="Typo.body2">@singleComm.Description</MudText>
+        </MudCardContent>
+        </MudCard>
+    </MudContainer>
+    }
+        
+}
+
+
 
 @code {
+    [Parameter]
+    public string commentryId { get; set; }
 
+    private List<SingleCommentDTO>? singleComments;
+
+    private bool downloadDataError = false;
+    private string errorMessage = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var getAllResponse = await _singleCommentaryService.GetAllSingleCommentsInCommentaryAsync(Convert.ToInt32(commentryId));
+        if (getAllResponse.Success)
+        {
+            downloadDataError = false;
+            errorMessage = "";
+            singleComments = getAllResponse.Data;
+            return;
+        }
+        HandleBadResult(getAllResponse.Message);
+    }
+
+    private void HandleBadResult(string errMsg)
+    {
+            errorMessage = errMsg;
+            downloadDataError = true;
+    }
 }

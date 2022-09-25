@@ -7,7 +7,7 @@
 @inject ICommentaryService _commentaryService
 
 @{
-    var title = "Zarządzaj sportami";
+    var title = "Relacja";
 }
 <PageHeaderTitle Title="@title"/>
 
@@ -24,14 +24,18 @@ else if (commentary == null)
 }
 else
 {
-     <MudCard Class="mr-3">
+    <MudContainer Fixed="true">
+     <MudCard>
         <MudCardContent>
             <MudText Typo="Typo.h5">@commentary.Caption</MudText>
             <MudText Typo="Typo.body2">@commentary.Description</MudText>
         </MudCardContent>
     </MudCard>
-
-    <CommentaryLive/>
+    </MudContainer>
+    <AuthorizeView Roles="Admin">
+        <CommentaryLiveAdminPanel commentryId="@id"/>
+    </AuthorizeView>
+        <CommentaryLive commentryId="@id"/>
 }
 @code {
     [Parameter]

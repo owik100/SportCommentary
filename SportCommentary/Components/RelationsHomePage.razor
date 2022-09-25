@@ -26,6 +26,9 @@ else{
             string hrefToSingle = $"/commentary/{comm.CommentaryID}";
             <div class="col">
         <div class="card h-100">
+            @if(comm.IsLive){
+                  <MudBadge Content="live" Color="Color.Success" Overlap="true" Class="mx-6"/>
+            }
           <img src="@comm.CommentaryImage" class="card-img-top" alt="commentary image">
           <div class="card-body">
           <a href=@hrefToSingle class="card-title">@comm.Caption</a>
@@ -42,6 +45,7 @@ else{
     private PagedList<CommentaryDTO>? commentaries;
     private bool downloadDataError = false;
     private string errorMessage = "";
+    private string live = "live";
 
     protected override async Task OnInitializedAsync()
     {

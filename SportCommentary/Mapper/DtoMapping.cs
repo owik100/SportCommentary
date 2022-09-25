@@ -2,6 +2,7 @@
 using SportCommentaryDataAccess.DTO;
 using SportCommentaryDataAccess.DTO.Commentary;
 using SportCommentaryDataAccess.DTO.Event;
+using SportCommentaryDataAccess.DTO.SingleCommentary;
 using SportCommentaryDataAccess.DTO.SportType;
 using SportCommentaryDataAccess.Entities;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
@@ -28,6 +29,9 @@ namespace SportCommentary.Mapper
             CreateMap<Commentary, CommentaryDTO>();
             CreateMap<UpdateCommentaryDTO, Commentary>();
             CreateMap<CommentaryDTO, UpdateCommentaryDTO>();
+
+            CreateMap<CreateSingleCommentaryDTO, SingleComment>();
+            CreateMap<SingleComment, SingleCommentDTO>();
         }
     }
 }

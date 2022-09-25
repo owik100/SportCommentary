@@ -1,0 +1,49 @@
+﻿@using SportCommentary.Repository.Interfaces
+@using SportCommentary.Service.Interfaces
+@using SportCommentaryDataAccess.DTO.SingleCommentary
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject ISingleCommentaryService _singleCommentaryService
+
+<MudContainer Fixed="true" Class="mt-4">
+             <EditForm Class="mb-4" id="editForm" Model="createSingleCommentaryModel" OnValidSubmit="@HandleValidSubmit">
+                       <DataAnnotationsValidator />
+               <MudCard>
+               
+                     <MudCardContent>
+                               <MudText Typo="Typo.h6">Dodaj nowe wydarzenie</MudText>
+                               <MudTextField Label="Tytuł" @bind-Value="createSingleCommentaryModel.Title" For="@(() => createSingleCommentaryModel.Title)"/>
+                               <MudTextField Lines="4" Label="Opis" @bind-Value="createSingleCommentaryModel.Description" For="@(() => createSingleCommentaryModel.Description)"/>
+                       </MudCardContent>
+                   <MudCardActions>
+                       <MudFab Class="mr-4" ButtonType="ButtonType.Submit" StartIcon="@Icons.Material.Filled.Save" Variant="Variant.Filled" Color="Color.Primary" Label="Dodaj"/>
+                   </MudCardActions>
+               </MudCard>
+             </EditForm>
+      </MudContainer>
+
+@code {
+    [Parameter]
+    public string commentryId { get; set; }
+
+    private CreateSingleCommentaryDTO createSingleCommentaryModel = new();
+    private bool downloadDataError = false;
+    private string errorMessage = "";
+
+    private void HandleBadResult(string errMsg)
+    {
+        Snackbar.Add(errMsg, Severity.Error);
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        createSingleCommentaryModel.CommentaryID = Convert.ToInt32(commentryId);
+        var submitRes = await _singleCommentaryService.AddSingleCommentaryAsync(createSingleCommentaryModel);
+        if (submitRes.Success)
+        {
+            Snackbar.Add("Wydarzenie zostało dodane", Severity.Success);
+            return;
+        }
+        HandleBadResult(submitRes.Message);
+    }
+}

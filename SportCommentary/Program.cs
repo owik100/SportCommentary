@@ -56,6 +56,9 @@ builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<ICommentaryRepository, CommentaryRepository>();
 builder.Services.AddScoped<ICommentaryService, CommentaryService>();
 
+builder.Services.AddScoped<ISingleCommentaryRepository, SingleCommentaryRepository>();
+builder.Services.AddScoped<ISingleCommentaryService, SingleCommentaryService>();
+
 builder.Services.AddSingleton<IPaginationHelper, PaginationHelper>();
 
 builder.Logging.AddLog4Net();
