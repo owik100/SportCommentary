@@ -2,9 +2,12 @@
 @using SportCommentary.Helpers
 @using SportCommentary.Service.Interfaces
 @using SportCommentaryDataAccess.DTO.Commentary
+@using SportCommentaryDataAccess.DTO.SportType
 
 @inject ISnackbar Snackbar
 @inject ICommentaryService _commentaryService
+@inject ISportTypeService _sportTypeService
+@inject NavigationManager _navigationManager
 
 @page "/addNewRelation"
 @attribute [Authorize(Roles = "Admin")]
@@ -14,7 +17,15 @@
 }
 <PageHeaderTitle Title="@title"/>
 
-  <EditForm Class="mb-4" id="newCommentaryForm" Model="createCommentaryDTO" OnValidSubmit="@HandleValidSubmit">
+
+@if (sportTypes == null)
+{
+        <MudContainer Class="d-flex justify-center">
+            <MudProgressCircular  Color="Color.Primary" Indeterminate="true"/> 
+        </MudContainer>
+}
+else{
+    <EditForm Class="mb-4" id="newCommentaryForm" Model="createCommentaryDTO" OnValidSubmit="@HandleValidSubmit">
                        <DataAnnotationsValidator />
                <MudCard>
                    <MudCardContent>
@@ -33,17 +44,44 @@
                        <div class="d-flex justify-center">
                             <MudImage ObjectFit=ObjectFit.Cover Src="@uploadedImage" Alt="commentaryImage"  Elevation="25" Class="rounded-lg imgFit"/>
                        </div>
+                       <MudSelect  Clearable="true" @bind-Value="selectedSportID" T="Int32" Label="Sport" AnchorOrigin="Origin.BottomCenter">
+                @foreach (var sport in sportTypes)
+                {
+                                   <MudSelectItem Value="sport.SportTypeID">@sport.Name</MudSelectItem>
+                }
+                       </MudSelect>
                    </MudCardContent>
                    <MudCardActions>
                        <MudFab Class="mr-4" ButtonType="ButtonType.Submit" StartIcon="@Icons.Material.Filled.LiveTv" Variant="Variant.Filled" Color="Color.Primary" Label="Utwórz relację"/>
                    </MudCardActions>
                </MudCard>
   </EditForm>
+}
+
+  
 
 @code {
     private CreateCommentaryDTO createCommentaryDTO = new();
+    private List<SportTypeDTO>? sportTypes;
+    private int selectedSportID = 0;
 
-    private void HandleBadResult(string errMsg, bool downloadDataErrorP)
+    protected override async Task OnInitializedAsync()
+    {
+        await GetSportTypes();
+    }
+
+    private async Task GetSportTypes()
+    {
+        var getAllResponse = await _sportTypeService.GetAllSportTypesAsync();
+        if (getAllResponse.Success)
+        {
+            sportTypes = getAllResponse.Data;
+            return;
+        }
+        HandleBadResult(getAllResponse.Message);
+    }
+
+    private void HandleBadResult(string errMsg)
     {
         Snackbar.Add(errMsg, Severity.Error);
     }
@@ -60,12 +98,19 @@
         {
             createCommentaryDTO.CommentaryImage = uploadedImage;
         }
+        createCommentaryDTO.SportTypeID = selectedSportID == 0 ? -1 : selectedSportID;
+        if (createCommentaryDTO.SportTypeID == -1)
+        {
+            Snackbar.Add("Wybierz sport!", Severity.Error);
+            return;
+        }
         var submitRes = await _commentaryService.AddCommentaryAsync(createCommentaryDTO);
         if (submitRes.Success)
         {
             Snackbar.Add("Relacja została rozpoczęta!", Severity.Success);
+            _navigationManager.NavigateTo($"/commentary/{submitRes.Data.CommentaryID}");
             return;
         }
-        HandleBadResult(submitRes.Message, false);
+        HandleBadResult(submitRes.Message);
     }
 }

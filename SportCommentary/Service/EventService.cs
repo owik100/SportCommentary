@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using SportCommentary.Repository.Interfaces;
 using SportCommentary.Service.Interfaces;
 using SportCommentaryDataAccess;
@@ -141,6 +142,41 @@ namespace SportCommentary.Service
                 _response.Success = true;
                 _response.Message = "ok";
                 _response.Data = eventDTOList;
+
+            }
+            catch (Exception ex)
+            {
+                _response.Success = false;
+                _response.Data = null;
+                _response.Message = "Wystąpił nieoczekiwany błąd";
+                _response.ErrorMessages = new List<string> { Convert.ToString(ex.Message) };
+            }
+
+            return _response;
+        }
+
+        public async Task<ServiceResponse<List<EventDTO>>> GetAllEventsAsyncBySportType(int id)
+        {
+            ServiceResponse <List<EventDTO>> _response = new();
+            try
+            {
+                ICollection<Event> events = await _eventRepo.GetEventBySportIdAsync(id);
+
+                if (events == null)
+                {
+                    _response.Success = false;
+                    _response.Message = "Nie znaleziono wydarzeń";
+                    return _response;
+                }
+                List<EventDTO> EventDTOList = new List<EventDTO>();
+                foreach (var item in events)
+                {
+                    EventDTOList.Add(_mapper.Map<EventDTO>(item));
+                }
+
+                _response.Success = true;
+                _response.Message = "ok";
+                _response.Data = EventDTOList;
 
             }
             catch (Exception ex)

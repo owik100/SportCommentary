@@ -14,5 +14,6 @@ namespace SportCommentaryDataAccess.DTO.SportType
         [StringLength(150, ErrorMessage = " {0} musi być co najmniej {2} i maksymalnie {1} długa.", MinimumLength = 2)]
         [Display(Name = "Nazwa sportu")]
         public string Name { get; set; }
+        public ICollection<SportCommentaryDataAccess.Entities.Commentary>? Commentaries { get; set; }
     }
 }

@@ -37,7 +37,7 @@ namespace SportCommentary.Repository
 
         public async Task<ICollection<Event>> GetEventBySportIdAsync(int sportId)
         {
-            return await _dataContext.Event.Where(ev => ev.SportTypeID == sportId).ToListAsync();
+            return await _dataContext.Event.Where(ev => ev.SportTypeID == sportId || ev.SportTypeID == null).ToListAsync();
         }
 
         public async Task<bool> UpdateEventAsync(Event eventType)

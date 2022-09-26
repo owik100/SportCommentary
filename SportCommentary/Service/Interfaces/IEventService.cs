@@ -35,5 +35,10 @@ namespace SportCommentary.Service.Interfaces
         /// <param name="Id"></param>
         /// <returns>bool</returns>
         Task<ServiceResponse<string>> DeleteEventType(int Id);
+        /// <summary>
+        /// Return all Events.
+        /// </summary>
+        /// <returns>List Of EventDTO</returns>
+        Task<ServiceResponse<List<EventDTO>>> GetAllEventsAsyncBySportType(int id);
     }
 }

@@ -1,9 +1,12 @@
 ﻿@using SportCommentary.Repository.Interfaces
 @using SportCommentary.Service.Interfaces
+@using SportCommentaryDataAccess
+@using SportCommentaryDataAccess.DTO.Event
 @using SportCommentaryDataAccess.DTO.SingleCommentary
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject ISingleCommentaryService _singleCommentaryService
+@inject IEventService _eventsService
 
 <MudContainer Fixed="true" Class="mt-4">
              <EditForm Class="mb-4" id="editForm" Model="createSingleCommentaryModel" OnValidSubmit="@HandleValidSubmit">
@@ -25,10 +28,26 @@
 @code {
     [Parameter]
     public string commentryId { get; set; }
+    [Parameter]
+    public string sportTypeId { get; set; }
 
     private CreateSingleCommentaryDTO createSingleCommentaryModel = new();
+    private List<EventDTO>? events;
     private bool downloadDataError = false;
     private string errorMessage = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var getAllResponse = await _eventsService.GetAllEventsAsyncBySportType(Convert.ToInt32(sportTypeId));
+        if (getAllResponse.Success)
+        {
+            downloadDataError = false;
+            errorMessage = "";
+            events = getAllResponse.Data;
+            return;
+        }
+        HandleBadResult(getAllResponse.Message); 
+    }
 
     private void HandleBadResult(string errMsg)
     {

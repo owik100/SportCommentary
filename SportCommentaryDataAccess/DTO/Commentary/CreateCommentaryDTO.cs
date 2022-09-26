@@ -18,5 +18,6 @@ namespace SportCommentaryDataAccess.DTO.Commentary
         public string CommentaryImage { get; set; }
         public DateTime CommentaryStart { get; set; }
         public bool IsLive { get; set; }
+        public int SportTypeID { get; set; }
     }
 }

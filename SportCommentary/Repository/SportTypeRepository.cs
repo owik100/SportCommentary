@@ -40,7 +40,10 @@ namespace SportCommentary.Repository
 
         public async Task<ICollection<SportType>> GetAllSportTypesAsync()
         {
-            return await _dataContext.SportType.ToListAsync();
+            return await _dataContext
+                .SportType
+                .Include(x => x.Commentaries)
+                .ToListAsync();
         }
 
         public async Task<SportType> GetSportTypeByIdAsync(int sportTypeId)

@@ -5,6 +5,7 @@
 
 @inject ISnackbar Snackbar
 @inject ICommentaryService _commentaryService
+@inject ISportTypeService _sportTypeService
 
 @{
     var title = "Relacja";
@@ -33,7 +34,7 @@ else
     </MudCard>
     </MudContainer>
     <AuthorizeView Roles="Admin">
-        <CommentaryLiveAdminPanel commentryId="@id"/>
+        <CommentaryLiveAdminPanel commentryId="@id" sportTypeId="@sportTypeId"/>
     </AuthorizeView>
         <CommentaryLive commentryId="@id"/>
 }
@@ -41,12 +42,17 @@ else
     [Parameter]
     public string id { get; set; }
 
+    public string sportTypeId = "";
+
     private CommentaryDTO? commentary;
     private bool downloadDataError = false;
     private string errorMessage = "";
 
     protected override async Task OnInitializedAsync()
     {
+        var allSports = await _sportTypeService.GetAllSportTypesAsync();
+        var x = allSports.Data.Where(x => x.Commentaries.Any(y => y.CommentaryID == Convert.ToInt32(id))).Select(z => z.SportTypeID).First();
+        sportTypeId = x.ToString();
         var getAllResponse = await _commentaryService.GetByIdAsync(Convert.ToInt32(id));
         if (getAllResponse.Success)
         {

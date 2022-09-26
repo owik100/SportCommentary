@@ -81,6 +81,7 @@ namespace SportCommentary.Service
                 response.ErrorMessages = new List<string> { Convert.ToString(ex.Message) };
 
             }
+            _memoryCache.Remove("AllSportTypes");
             return response;
         }
 
