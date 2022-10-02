@@ -61,6 +61,11 @@ builder.Services.AddScoped<ISingleCommentaryService, SingleCommentaryService>();
 
 builder.Services.AddSingleton<IPaginationHelper, PaginationHelper>();
 
+builder.Services.AddDbContextFactory<ApplicationDbContext>(
+       options =>
+           options.UseSqlServer(connectionString), ServiceLifetime.Transient);
+
+
 builder.Logging.AddLog4Net();
 
 builder.Services.AddAuthorization(options =>

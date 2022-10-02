@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using SportCommentary.Data;
 using SportCommentary.Repository.Interfaces;
 using SportCommentaryDataAccess.Entities;
@@ -8,77 +9,90 @@ namespace SportCommentary.Repository
 {
     public class CommentaryRepository : ICommentaryRepository
     {
-        private readonly ApplicationDbContext _dataContext;
-        public CommentaryRepository(ApplicationDbContext dataContext)
+        private readonly IDbContextFactory<ApplicationDbContext> _dataContextFactory;
+        public CommentaryRepository(IDbContextFactory<ApplicationDbContext> dataContext)
         {
-            _dataContext = dataContext;
+            _dataContextFactory = dataContext;
         }
 
         public async Task<ICollection<Commentary>> GetAllCommentaryAsync(List<int> requestedCommentary)
         {
-            if(requestedCommentary is null)
+            using var context = _dataContextFactory.CreateDbContext();
+
+            if (requestedCommentary is null)
             {
-                return await _dataContext.Commentary.OrderByDescending(x => x.CommentaryStart).ToListAsync();
+                return await context.Commentary.OrderByDescending(x => x.CommentaryStart).ToListAsync();
             }
-            return await _dataContext.Commentary.Where(comm=> requestedCommentary.Contains(comm.CommentaryID)).OrderByDescending(x => x.CommentaryStart).ToListAsync();
+            return await context.Commentary.Where(comm => requestedCommentary.Contains(comm.CommentaryID)).OrderByDescending(x => x.CommentaryStart).ToListAsync();
         }
 
         public async Task<ICollection<Commentary>> GetAllCommentaryLiveAsync(List<int> requestedCommentary)
         {
+            using var context = _dataContextFactory.CreateDbContext();
+
             if (requestedCommentary is null)
             {
-                return await _dataContext.Commentary.Where(comm => comm.IsLive).OrderByDescending(x => x.CommentaryStart).ToListAsync();
+                return await context.Commentary.Where(comm => comm.IsLive).OrderByDescending(x => x.CommentaryStart).ToListAsync();
             }
-            return await _dataContext.Commentary.Where(comm => comm.IsLive && requestedCommentary.Contains(comm.CommentaryID)).OrderByDescending(x => x.CommentaryStart).ToListAsync();
+            return await context.Commentary.Where(comm => comm.IsLive && requestedCommentary.Contains(comm.CommentaryID)).OrderByDescending(x => x.CommentaryStart).ToListAsync();
         }
 
         public async Task<bool> CommentaryExistAsync(string CommentaryName)
         {
-            return await _dataContext.Commentary.AnyAsync(Comm => Comm.Caption == CommentaryName);
+            using var context = _dataContextFactory.CreateDbContext();
+
+            return await context.Commentary.AnyAsync(Comm => Comm.Caption == CommentaryName);
         }
 
         public async Task<Commentary> GetCommentaryByIdAsync(int commentaryId)
         {
-            return await _dataContext.Commentary.FirstOrDefaultAsync(comm => comm.CommentaryID == commentaryId);
+            using var context = _dataContextFactory.CreateDbContext();
+
+            return await context.Commentary.FirstOrDefaultAsync(comm => comm.CommentaryID == commentaryId);
         }
 
         public async Task<bool> CreateCommentaryAsync(Commentary commentary)
         {
-            await _dataContext.Commentary.AddAsync(commentary);
-            return await Save();
+            using var context = _dataContextFactory.CreateDbContext();
+
+            await context.Commentary.AddAsync(commentary);
+            return await context.SaveChangesAsync() >= 0 ? true : false;
         }
 
         public async Task<bool> UpdateCommentaryAsync(Commentary commentary)
         {
-            _dataContext.Commentary.Update(commentary);
-            return await Save();
+            using var context = _dataContextFactory.CreateDbContext();
+
+            context.Commentary.Update(commentary);
+            return await context.SaveChangesAsync() >= 0 ? true : false;
         }
 
         public async Task<bool> DeleteCommentaryAsync(Commentary commentary)
         {
-            _dataContext.Remove(commentary);
-            return await Save();
+            using var context = _dataContextFactory.CreateDbContext();
+
+            context.Remove(commentary);
+            return await context.SaveChangesAsync() >= 0 ? true : false;
         }
 
-        private async Task<bool> Save()
+        public async Task<int> CountAllCommentaryAsync(bool liveOnly)
         {
-            return await _dataContext.SaveChangesAsync() >= 0 ? true : false;
-        }
+            using var context = _dataContextFactory.CreateDbContext();
 
-        public Task<int> CountAllCommentaryAsync(bool liveOnly)
-        {
             if (liveOnly)
             {
-                return _dataContext.Commentary.Where(comm => comm.IsLive).CountAsync();
+                return await context.Commentary.Where(comm => comm.IsLive).CountAsync();
             }
-            return _dataContext.Commentary.CountAsync();
+                return await context.Commentary.CountAsync();
         }
 
         public async Task<ICollection<int>> GetSpecificIDs(int skip, int take, bool liveOnly)
         {
+            using var context = _dataContextFactory.CreateDbContext();
+
             if (liveOnly)
             {
-                return await _dataContext.Commentary
+                return await context.Commentary
                     .Where(x => x.IsLive)
                     .OrderByDescending(x => x.CommentaryStart)
                     .Skip(skip)
@@ -88,7 +102,7 @@ namespace SportCommentary.Repository
             }
             else
             {
-                return await _dataContext.Commentary
+                return await context.Commentary
                     .OrderByDescending(x => x.CommentaryStart)
                     .Skip(skip)
                     .Take(take)
