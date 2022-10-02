@@ -29,15 +29,19 @@ else{
                                <MudText Typo="Typo.h6">Dodaj nowe wydarzenie</MudText>
                                <MudTextField Label="Tytuł" @bind-Value="createSingleCommentaryModel.Title" For="@(() => createSingleCommentaryModel.Title)"/>
                                <MudTextField Lines="4" Label="Opis" @bind-Value="createSingleCommentaryModel.Description" For="@(() => createSingleCommentaryModel.Description)"/>
-                                    <MudSelect  Clearable="true" @bind-Value="selectedEventID" T="Int32" Label="Wydarzenie" AnchorOrigin="Origin.BottomCenter">
+
+                       <MudChipSet @bind-SelectedChip="selectedEvent" Filter="true">
                     @foreach (var singleEvent in events)
                     {
-                                         <MudSelectItem Value="singleEvent.EventID">@singleEvent.Name</MudSelectItem>
+                                        <MudChip Size="Size.Large" Color="Color.Dark" Variant="Variant.Text" Icon="@singleEvent.Icon" Tag="@singleEvent.EventID" >
+                                    <img  src="@singleEvent.Icon">
+                                    @singleEvent.Name
+                                </MudChip>
                     }
-                       </MudSelect>
+                    </MudChipSet>
                        </MudCardContent>
                    <MudCardActions>
-                       <MudFab Class="mr-4" ButtonType="ButtonType.Submit" StartIcon="@Icons.Material.Filled.Save" Variant="Variant.Filled" Color="Color.Primary" Label="Dodaj"/>
+                       <MudFab Class="mr-4" ButtonType="ButtonType.Submit" StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary" Label="Dodaj"/>
                    </MudCardActions>
                </MudCard>
              </EditForm>
@@ -53,8 +57,7 @@ else{
     private List<EventDTO>? events;
     private bool downloadDataError = false;
     private string errorMessage = "";
-
-    private int selectedEventID = 0;
+    private MudChip selectedEvent;
 
     protected override async Task OnInitializedAsync()
     {
@@ -77,12 +80,15 @@ else{
     private async Task HandleValidSubmit()
     {
         createSingleCommentaryModel.CommentaryID = Convert.ToInt32(commentryId);
-        createSingleCommentaryModel.EventID = selectedEventID;
+        int? selectedEventId = selectedEvent == null ? null : Convert.ToInt32(selectedEvent.Tag);
+        createSingleCommentaryModel.EventID = selectedEventId;
         createSingleCommentaryModel.Time = DateTime.Now;
         var submitRes = await _singleCommentaryService.AddSingleCommentaryAsync(createSingleCommentaryModel);
         if (submitRes.Success)
         {
             Snackbar.Add("Wydarzenie zostało dodane", Severity.Success);
+            createSingleCommentaryModel = new();
+            //NotifyComponent
             return;
         }
         HandleBadResult(submitRes.Message);

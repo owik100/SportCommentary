@@ -16,7 +16,7 @@ namespace SportCommentaryDataAccess.DTO.SingleCommentary
         [ForeignKey("Commentary")]
         public int CommentaryID { get; set; }
         [ForeignKey("Event")]
-        public int EventID { get; set; }
+        public int? EventID { get; set; }
         [Required(ErrorMessage = "{0} jest wymagana.")]
         [StringLength(150, ErrorMessage = " {0} musi być co najmniej {2} i maksymalnie {1} długa.", MinimumLength = 2)]
         [Display(Name = "Nazwa")]
@@ -24,6 +24,6 @@ namespace SportCommentaryDataAccess.DTO.SingleCommentary
         public string Description { get; set; }
         public DateTime Time { get; set; }
 
-        public SportCommentaryDataAccess.Entities.Event Event { get; set; }
+        public SportCommentaryDataAccess.Entities.Event? Event { get; set; }
     }
 }

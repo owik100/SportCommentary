@@ -13,15 +13,25 @@ else if (singleComments == null)
                 </MudContainer>
 }
 else{
+     <div Class="allSingleContainer">
+
+     </div>
     foreach (var singleComm in singleComments)
     {
-        <MudContainer>
+        <MudContainer Fixed="true">
         <MudCard Class="mt-4">
         <MudCardContent>
-            <MudText Typo="Typo.h3">@singleComm.Time</MudText>
-            <MudText Typo="Typo.h5">@singleComm.Title</MudText>
+                    <MudText Typo="Typo.h3">@singleComm.Title</MudText>
+                    <MudText Typo="Typo.h4">@singleComm.Description</MudText>
             <MudText Typo="Typo.body2">@singleComm.Description</MudText>
-            <img src="@singleComm.Event.Icon"/>
+                    @if (singleComm.Event != null && !string.IsNullOrEmpty(singleComm.Event.Icon))
+                    {
+                       <img src="@singleComm.Event.Icon"/>
+             }
+             else{
+                  <img src="/img/info.png" alt="info image"/>
+             }
+
         </MudCardContent>
         </MudCard>
     </MudContainer>
