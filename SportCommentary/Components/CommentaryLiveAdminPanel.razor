@@ -52,6 +52,8 @@ else{
     public string commentryId { get; set; }
     [Parameter]
     public string sportTypeId { get; set; }
+    [Parameter] 
+    public EventCallback<SingleCommentDTO> AddedSingleComment { get; set; }
 
     private CreateSingleCommentaryDTO createSingleCommentaryModel = new();
     private List<EventDTO>? events;
@@ -88,7 +90,7 @@ else{
         {
             Snackbar.Add("Wydarzenie zostało dodane", Severity.Success);
             createSingleCommentaryModel = new();
-            //NotifyComponent
+            await AddedSingleComment.InvokeAsync(submitRes.Data);
             return;
         }
         HandleBadResult(submitRes.Message);

@@ -15,7 +15,7 @@ namespace SportCommentaryDataAccess.Entities
         [ForeignKey("Event")]
         public int? EventID { get; set; }
         public string Title { get; set; }
-        public string Description { get; set; }
+        public string? Description { get; set; }
         public DateTime Time { get; set; }
 
         public virtual Event? Event { get; set; }

@@ -4,12 +4,14 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor;
 using MudBlazor.Services;
 using SportCommentary.Areas.Identity;
 using SportCommentary.Data;
 using SportCommentary.Helpers;
+using SportCommentary.HUB;
 using SportCommentary.Repository;
 using SportCommentary.Repository.Interfaces;
 using SportCommentary.Service;
@@ -68,6 +70,12 @@ builder.Services.AddDbContextFactory<ApplicationDbContext>(
 
 builder.Logging.AddLog4Net();
 
+builder.Services.AddResponseCompression(opts =>
+{
+    opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
+        new[] { "application/octet-stream" });
+});
+
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("PolicyAdmin", policy =>
@@ -88,6 +96,7 @@ builder.Services.AddMudServices();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+app.UseResponseCompression();
 if (app.Environment.IsDevelopment())
 {
     app.UseMigrationsEndPoint();
@@ -111,6 +120,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapBlazorHub();
+app.MapHub<CommentaryHub>("/commentaryhub");
 app.MapFallbackToPage("/_Host");
 
 app.Run();

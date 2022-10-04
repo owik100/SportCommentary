@@ -1,12 +1,8 @@
 ﻿@using SportCommentary.Service.Interfaces
 @using SportCommentaryDataAccess.DTO.SingleCommentary
-@inject ISingleCommentaryService _singleCommentaryService
 
-@if (downloadDataError)
-{
-                        <DownladDataError ErrorMessage="@errorMessage" RefreshPage="/commentary/{id}"/>
-}
-else if (singleComments == null)
+
+@if (singleComments == null)
 {
                 <MudContainer Class="d-flex justify-center">
                     <MudProgressCircular  Color="Color.Primary" Indeterminate="true"/> 
@@ -39,33 +35,9 @@ else{
         
 }
 
-
-
 @code {
     [Parameter]
     public string commentryId { get; set; }
-
-    private List<SingleCommentDTO>? singleComments;
-
-    private bool downloadDataError = false;
-    private string errorMessage = "";
-
-    protected override async Task OnInitializedAsync()
-    {
-        var getAllResponse = await _singleCommentaryService.GetAllSingleCommentsInCommentaryAsync(Convert.ToInt32(commentryId));
-        if (getAllResponse.Success)
-        {
-            downloadDataError = false;
-            errorMessage = "";
-            singleComments = getAllResponse.Data;
-            return;
-        }
-        HandleBadResult(getAllResponse.Message);
-    }
-
-    private void HandleBadResult(string errMsg)
-    {
-            errorMessage = errMsg;
-            downloadDataError = true;
-    }
+    [Parameter]
+    public List<SingleCommentDTO>? singleComments { get; set; }
 }

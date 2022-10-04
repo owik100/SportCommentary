@@ -2,16 +2,21 @@
 @using SportCommentary.Service.Interfaces
 @using SportCommentaryDataAccess.DTO.Commentary
 @using SportCommentary.Components
+@using SportCommentaryDataAccess.DTO.SingleCommentary
+@using Microsoft.AspNetCore.SignalR.Client
+@implements IAsyncDisposable
+
 
 @inject ISnackbar Snackbar
 @inject ICommentaryService _commentaryService
 @inject ISportTypeService _sportTypeService
+@inject ISingleCommentaryService _singleCommentaryService
+@inject NavigationManager _navigation
 
 @{
     var title = "Relacja";
 }
 <PageHeaderTitle Title="@title"/>
-
 
 @if (downloadDataError)
 {
@@ -34,9 +39,9 @@ else
     </MudCard>
     </MudContainer>
     <AuthorizeView Roles="Admin">
-        <CommentaryLiveAdminPanel commentryId="@id" sportTypeId="@sportTypeId"/>
+        <CommentaryLiveAdminPanel commentryId="@id" sportTypeId="@sportTypeId" AddedSingleComment="OnNewAddedSingleComment"/>
     </AuthorizeView>
-        <CommentaryLive commentryId="@id"/>
+            <CommentaryLive commentryId="@id" singleComments="@singleComments"/>
 }
 @code {
     [Parameter]
@@ -48,8 +53,26 @@ else
     private bool downloadDataError = false;
     private string errorMessage = "";
 
+    private List<SingleCommentDTO>? singleComments;
+
+
+    private HubConnection? hubConnection;
+
     protected override async Task OnInitializedAsync()
     {
+        //HUB
+        hubConnection = new HubConnectionBuilder()
+          .WithUrl(_navigation.ToAbsoluteUri($"/commentaryhub?commentryId={id}"))
+          .Build();
+
+        hubConnection.On<SingleCommentDTO>("ReceiveSingleComment", (newSingleComment) =>
+        {
+            singleComments?.Insert(0, newSingleComment);
+            InvokeAsync(StateHasChanged);
+        });
+
+        await hubConnection.StartAsync();
+
         var allSports = await _sportTypeService.GetAllSportTypesAsync();
         var x = allSports.Data.Where(x => x.Commentaries.Any(y => y.CommentaryID == Convert.ToInt32(id))).Select(z => z.SportTypeID).First();
         sportTypeId = x.ToString();
@@ -59,6 +82,17 @@ else
             downloadDataError = false;
             errorMessage = "";
             commentary = getAllResponse.Data;
+        }
+        else{
+            HandleBadResult(getAllResponse.Message, true);
+        }
+
+        var getAllResponseSingleComments = await _singleCommentaryService.GetAllSingleCommentsInCommentaryAsync(Convert.ToInt32(id));
+        if (getAllResponseSingleComments.Success)
+        {
+            downloadDataError = false;
+            errorMessage = "";
+            singleComments = getAllResponseSingleComments.Data;
             return;
         }
         HandleBadResult(getAllResponse.Message, true);
@@ -74,6 +108,31 @@ else
         else
         {
             Snackbar.Add(errMsg, Severity.Error);
+        }
+    }
+    private async Task OnNewAddedSingleComment(SingleCommentDTO newSingleComment)
+    {
+        await SendViaHub(newSingleComment);
+    }
+
+
+    //HUB
+    private async Task SendViaHub(SingleCommentDTO newSingleComment)
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.SendAsync("SendSingleComment", newSingleComment);
+        }
+    }
+
+    public bool IsConnected =>
+        hubConnection?.State == HubConnectionState.Connected;
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.DisposeAsync();
         }
     }
 }
