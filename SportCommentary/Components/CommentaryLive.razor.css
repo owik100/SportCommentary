@@ -3,6 +3,12 @@
     height:32px;
 }
 
-.allSingleContainer{
-    max-height:800px;
+.allSingleContainer {
+    max-height: 800px;
+    overflow: scroll;
+}
+
+.cntrFlex {
+    display: flex;
+    align-items: center;
 }

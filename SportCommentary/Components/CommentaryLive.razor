@@ -10,29 +10,39 @@
 }
 else{
      <div Class="allSingleContainer">
-
-     </div>
-    foreach (var singleComm in singleComments)
-    {
-        <MudContainer Fixed="true">
-        <MudCard Class="mt-4">
-        <MudCardContent>
-                    <MudText Typo="Typo.h3">@singleComm.Title</MudText>
-                    <MudText Typo="Typo.h4">@singleComm.Description</MudText>
-            <MudText Typo="Typo.body2">@singleComm.Description</MudText>
-                    @if (singleComm.Event != null && !string.IsNullOrEmpty(singleComm.Event.Icon))
-                    {
-                       <img src="@singleComm.Event.Icon"/>
-             }
-             else{
-                  <img src="/img/info.png" alt="info image"/>
-             }
-
-        </MudCardContent>
-        </MudCard>
-    </MudContainer>
-    }
-        
+        <ul>
+         @foreach (var singleComm in singleComments)
+           {
+             <li>
+               <MudContainer>
+                    <MudCard Class="mt-4">
+                      <MudCardContent>
+                        <div class="cntrFlex">
+                                    @if (singleComm.Event != null && !string.IsNullOrEmpty(singleComm.Event.Icon))
+                                    {
+                                           <img src="@singleComm.Event.Icon"/>
+                                    }
+                                    else
+                                    {
+                                           <img src="/img/info.png" alt="info image"/>
+                                    }
+                                    
+                                    <div class="ml-5">
+                                            <MudText Typo="Typo.body2">@singleComm.Time</MudText>
+                                            <MudText Typo="Typo.subtitle2">@singleComm.Title</MudText>
+                                            <MudText Typo="Typo.subtitle1">@singleComm.Description</MudText>
+     
+                                    </div>
+                             
+                                  
+                        </div>
+                     </MudCardContent>
+                    </MudCard>
+              </MudContainer>
+             </li>
+           }
+        </ul>
+     </div>   
 }
 
 @code {
