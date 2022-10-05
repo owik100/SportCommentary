@@ -17,6 +17,10 @@
     var title = "Relacja";
 }
 <PageHeaderTitle Title="@title"/>
+@if (commentary != null && commentary.IsLive)
+{
+      <MudBadge Content="live" Color="Color.Success" Overlap="true" Class="mx-6"/>
+}
 
 @if (downloadDataError)
 {
@@ -39,7 +43,9 @@ else
     </MudCard>
     </MudContainer>
     <AuthorizeView Roles="Admin">
-        <CommentaryLiveAdminPanel commentryId="@id" sportTypeId="@sportTypeId" AddedSingleComment="OnNewAddedSingleComment"/>
+        @if(commentary.IsLive){
+            <CommentaryLiveAdminPanel commentary="@commentary" sportTypeId="@sportTypeId" AddedSingleComment="OnNewAddedSingleComment" EndedCommentary ="OnEndedCommentary"/>
+        }     
     </AuthorizeView>
             <CommentaryLive commentryId="@id" singleComments="@singleComments"/>
 }
@@ -52,6 +58,7 @@ else
     private CommentaryDTO? commentary;
     private bool downloadDataError = false;
     private string errorMessage = "";
+    private string live = "live";
 
     private List<SingleCommentDTO>? singleComments;
 
@@ -134,5 +141,9 @@ else
         {
             await hubConnection.DisposeAsync();
         }
+    }
+
+    private void OnEndedCommentary(){
+        commentary.IsLive = false;
     }
 }

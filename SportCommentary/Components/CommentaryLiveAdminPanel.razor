@@ -1,13 +1,16 @@
-﻿@using SportCommentary.Repository.Interfaces
+﻿@using AutoMapper
+@using SportCommentary.Repository.Interfaces
 @using SportCommentary.Service.Interfaces
 @using SportCommentaryDataAccess
+@using SportCommentaryDataAccess.DTO.Commentary
 @using SportCommentaryDataAccess.DTO.Event
 @using SportCommentaryDataAccess.DTO.SingleCommentary
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject ISingleCommentaryService _singleCommentaryService
+@inject ICommentaryService _commentaryService
 @inject IEventService _eventsService
-
+@inject IMapper _mapper
 
 @if (downloadDataError)
 {
@@ -19,7 +22,8 @@ else if (events == null)
                     <MudProgressCircular  Color="Color.Primary" Indeterminate="true"/> 
                 </MudContainer>
 }
-else{
+else if(!commentryEnded)
+{
 <MudContainer Fixed="true" Class="mt-4">
              <EditForm Class="mb-4" id="editForm" Model="createSingleCommentaryModel" OnValidSubmit="@HandleValidSubmit">
                        <DataAnnotationsValidator />
@@ -40,8 +44,9 @@ else{
                     }
                     </MudChipSet>
                        </MudCardContent>
-                   <MudCardActions>
+                   <MudCardActions style="justify-content: space-between;">
                        <MudFab Class="mr-4" ButtonType="ButtonType.Submit" StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary" Label="Dodaj"/>
+                       <MudFab Class="mr-4"  StartIcon="@Icons.Material.Filled.Done" Variant="Variant.Filled" Color="Color.Secondary" Label="Zakończ relacje" @onclick="() => EndCommentaryDialog()"/>
                    </MudCardActions>
                </MudCard>
              </EditForm>
@@ -49,17 +54,21 @@ else{
 }
 @code {
     [Parameter]
-    public string commentryId { get; set; }
-    [Parameter]
     public string sportTypeId { get; set; }
     [Parameter] 
     public EventCallback<SingleCommentDTO> AddedSingleComment { get; set; }
+    [Parameter]
+    public EventCallback EndedCommentary { get; set; }
+    [Parameter]
+    public CommentaryDTO commentary { get; set; }
 
     private CreateSingleCommentaryDTO createSingleCommentaryModel = new();
     private List<EventDTO>? events;
     private bool downloadDataError = false;
     private string errorMessage = "";
     private MudChip selectedEvent;
+
+    private bool commentryEnded = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -81,7 +90,7 @@ else{
 
     private async Task HandleValidSubmit()
     {
-        createSingleCommentaryModel.CommentaryID = Convert.ToInt32(commentryId);
+        createSingleCommentaryModel.CommentaryID = Convert.ToInt32(commentary.CommentaryID);
         int? selectedEventId = selectedEvent == null ? null : Convert.ToInt32(selectedEvent.Tag);
         createSingleCommentaryModel.EventID = selectedEventId;
         createSingleCommentaryModel.Time = DateTime.Now;
@@ -91,6 +100,39 @@ else{
             Snackbar.Add("Wydarzenie zostało dodane", Severity.Success);
             createSingleCommentaryModel = new();
             await AddedSingleComment.InvokeAsync(submitRes.Data);
+            return;
+        }
+        HandleBadResult(submitRes.Message);
+    }
+
+    private async Task EndCommentaryDialog(){
+        var parameters = new DialogParameters();
+        parameters.Add("ContentText", "Czy na pewno chcesz zakończyć realcje? Nie będziesz mógł dodawać nowych komentarzy.");
+        parameters.Add("ButtonText", "Zakończ");
+        parameters.Add("Color", Color.Error);
+
+        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+
+        var dialog = DialogService.Show<DialogTemplate>("Zakończ relacje live", parameters, options);
+        var result = await dialog.Result;
+        if (!result.Cancelled)
+        {
+            await EndCommentary();
+        }
+    }
+
+    private async Task EndCommentary()
+    {
+        UpdateCommentaryDTO updateCommentaryModel = new UpdateCommentaryDTO();
+        updateCommentaryModel = _mapper.Map<UpdateCommentaryDTO>(commentary);
+        updateCommentaryModel.IsLive = false;
+
+        var submitRes = await _commentaryService.UpdateCommentaryAsync(updateCommentaryModel);
+        if (submitRes.Success)
+        {
+            Snackbar.Add("Relacja została zakończona", Severity.Success);
+            commentryEnded = true;
+            await EndedCommentary.InvokeAsync();
             return;
         }
         HandleBadResult(submitRes.Message);

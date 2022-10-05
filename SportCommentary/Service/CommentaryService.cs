@@ -10,6 +10,7 @@ using SportCommentaryDataAccess.DTO.Commentary;
 using SportCommentaryDataAccess.DTO.Event;
 using SportCommentaryDataAccess.DTO.SportType;
 using SportCommentaryDataAccess.Entities;
+using System.Drawing.Printing;
 using System.Linq;
 using System.Reflection;
 using static MudBlazor.CategoryTypes;
@@ -134,7 +135,6 @@ namespace SportCommentary.Service
             }
             return _response;
         }
-
         public async Task<ServiceResponse<PagedList<CommentaryDTO>>> GetAllCommentaryAsync(int pageNumber, int pageSize)
         {
             ServiceResponse<PagedList<CommentaryDTO>> _response = new();
