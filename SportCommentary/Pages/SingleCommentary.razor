@@ -1,17 +1,22 @@
 ﻿@page "/commentary/{id}"
+@using AutoMapper
 @using SportCommentary.Service.Interfaces
 @using SportCommentaryDataAccess.DTO.Commentary
 @using SportCommentary.Components
 @using SportCommentaryDataAccess.DTO.SingleCommentary
 @using Microsoft.AspNetCore.SignalR.Client
+@using SportCommentaryDataAccess.Entities
 @implements IAsyncDisposable
 
 
+@inject IJSRuntime JS
 @inject ISnackbar Snackbar
 @inject ICommentaryService _commentaryService
 @inject ISportTypeService _sportTypeService
 @inject ISingleCommentaryService _singleCommentaryService
+@inject IEventService _eventService
 @inject NavigationManager _navigation
+@inject IMapper _mapper
 
 @{
     var title = "Relacja";
@@ -67,14 +72,17 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+         await JS.InvokeAsync<string>("AddNotifications");
+
         //HUB
         hubConnection = new HubConnectionBuilder()
           .WithUrl(_navigation.ToAbsoluteUri($"/commentaryhub?commentryId={id}"))
           .Build();
 
-        hubConnection.On<SingleCommentDTO>("ReceiveSingleComment", (newSingleComment) =>
+        hubConnection.On<SingleCommentDTO>("ReceiveSingleComment", async (newSingleComment) => 
         {
             singleComments?.Insert(0, newSingleComment);
+            await JS.InvokeAsync<string>("ShowNotification", newSingleComment);
             InvokeAsync(StateHasChanged);
         });
 
@@ -147,3 +155,5 @@ else
         commentary.IsLive = false;
     }
 }
+
+

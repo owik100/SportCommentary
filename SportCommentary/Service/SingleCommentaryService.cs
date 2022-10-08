@@ -13,13 +13,15 @@ namespace SportCommentary.Service
     public class SingleCommentaryService : ISingleCommentaryService
     {
         private readonly ISingleCommentaryRepository _singleCommRepo;
+        private readonly IEventService _eventService;
         private readonly IMapper _mapper;
         private readonly IMemoryCache _memoryCache;
-        public SingleCommentaryService(IMapper mapper, ISingleCommentaryRepository singleCommRepo, IMemoryCache memoryCache)
+        public SingleCommentaryService(IMapper mapper, ISingleCommentaryRepository singleCommRepo, IMemoryCache memoryCache, IEventService eventService)
         {
             _mapper = mapper;
             _singleCommRepo = singleCommRepo;
             _memoryCache = memoryCache;
+            _eventService = eventService;
         }
         public async Task<ServiceResponse<SingleCommentDTO>> AddSingleCommentaryAsync(CreateSingleCommentaryDTO createSingleCommentaryDTO)
         {
@@ -38,21 +40,17 @@ namespace SportCommentary.Service
 
                 response.Success = true;
                 response.Data = _mapper.Map<SingleCommentDTO>(newSingleComment);
+                if (response.Data != null && response.Data.EventID != null && response.Data.EventID > 0)
+                {
+                    var evRes = await _eventService.GetByIdAsync(Convert.ToInt32(newSingleComment.EventID));
+                    if (evRes != null && evRes.Success)
+                    {
+                        response.Data.Event = _mapper.Map<Event>(evRes.Data);
+                    }
+                }
                 response.Message = "Created";
 
-                //List<EventDTO> EventDTOList = new List<EventDTO>();
-                //if (_memoryCache.TryGetValue("AllEvents", out EventDTOList))
-                //{
-                //    if (EventDTOList != null)
-                //    {
-                //        EventDTOList.Add(response.Data);
-                //        MemoryCacheEntryOptions cacheOptions = new MemoryCacheEntryOptions()
-                //            .SetAbsoluteExpiration(TimeSpan.FromMinutes(1))
-                //            .SetSlidingExpiration(TimeSpan.FromMinutes(5))
-                //            .SetSize(1024);
-                //        _memoryCache.Set("AllEvents", EventDTOList, cacheOptions);
-                //    }
-                //}
+
 
             }
             catch (Exception ex)

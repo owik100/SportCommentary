@@ -99,6 +99,7 @@ else if(!commentryEnded)
         {
             Snackbar.Add("Wydarzenie zostało dodane", Severity.Success);
             createSingleCommentaryModel = new();
+            selectedEvent = null;
             await AddedSingleComment.InvokeAsync(submitRes.Data);
             return;
         }

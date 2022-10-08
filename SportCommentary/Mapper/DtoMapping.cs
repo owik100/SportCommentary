@@ -20,7 +20,7 @@ namespace SportCommentary.Mapper
 
 
             CreateMap<CreateEventDTO, Event>();
-            CreateMap<Event, EventDTO>();
+            CreateMap<Event, EventDTO>().ReverseMap();
             CreateMap<UpdateEventDTO, Event>();
             CreateMap<EventDTO, UpdateEventDTO>();
 

@@ -6,3 +6,23 @@
 }
 
 <component type="typeof(App)" render-mode="Server" />
+
+<script>
+
+
+  window.AddNotifications = () => {
+      console.log("wwww")
+   if (Notification.permission !== 'granted')
+        Notification.requestPermission();
+  };
+
+  window.ShowNotification = (newSingleComment) => {
+  if (Notification.permission !== 'granted')
+  Notification.requestPermission();
+ else {
+  var notification = new Notification(newSingleComment.title, {
+   body: newSingleComment.description,
+  });
+ }
+};
+</script>
