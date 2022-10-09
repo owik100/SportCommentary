@@ -88,21 +88,6 @@ namespace SportCommentary.Service
 
                 _response.Success = true;
                 _response.Message = "Deleted";
-
-                //List<EventDTO> EventDTOList = new List<EventDTO>();
-                //if (_memoryCache.TryGetValue("AllEvents", out EventDTOList))
-                //{
-                //    if (EventDTOList != null)
-                //    {
-                //        EventDTOList.RemoveAll(x => x.EventID == Id);
-                //        MemoryCacheEntryOptions cacheOptions = new MemoryCacheEntryOptions()
-                //            .SetAbsoluteExpiration(TimeSpan.FromMinutes(1))
-                //            .SetSlidingExpiration(TimeSpan.FromMinutes(5))
-                //            .SetSize(1024);
-                //        _memoryCache.Set("AllEvents", EventDTOList, cacheOptions);
-                //    }
-                //}
-
             }
             catch (Exception ex)
             {
@@ -119,22 +104,15 @@ namespace SportCommentary.Service
             ServiceResponse<List<SingleCommentDTO>> _response = new();
             try
             {
-                //MemoryCacheEntryOptions cacheOptions = new MemoryCacheEntryOptions()
-                //    .SetAbsoluteExpiration(TimeSpan.FromMinutes(1))
-                //    .SetSlidingExpiration(TimeSpan.FromMinutes(5))
-                //    .SetSize(1024);
 
                 List<SingleCommentDTO> singleCommentDTOList = new List<SingleCommentDTO>();
-                //if (!_memoryCache.TryGetValue("AllEvents", out eventDTOList))
-                //{
+
                     singleCommentDTOList = new List<SingleCommentDTO>();
                     ICollection<SingleComment> SingleComments = await _singleCommRepo.GetByCommentaryIdAsync(Id);
                     foreach (var item in SingleComments)
                     {
                         singleCommentDTOList.Add(_mapper.Map<SingleCommentDTO>(item));
                     }
-                   // _memoryCache.Set("AllEvents", singleCommentDTOList, cacheOptions);
-                //}
 
                 _response.Success = true;
                 _response.Message = "ok";
