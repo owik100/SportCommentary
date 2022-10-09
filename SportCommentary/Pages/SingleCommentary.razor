@@ -48,7 +48,7 @@ else
         </MudCardContent>
     </MudCard>
     </MudContainer>
-    <AuthorizeView Roles="Admin">
+    <AuthorizeView Roles="Admin,Commentator">
         @if(commentary.IsLive){
             <CommentaryLiveAdminPanel commentary="@commentary" sportTypeId="@sportTypeId" AddedSingleComment="OnNewAddedSingleComment" EndedCommentary ="OnEndedCommentary"/>
         }     
