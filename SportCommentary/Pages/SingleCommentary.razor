@@ -22,10 +22,7 @@
     var title = "Relacja";
 }
 <PageHeaderTitle Title="@title"/>
-@if (commentary != null && commentary.IsLive)
-{
-      <MudBadge Content="live" Color="Color.Success" Overlap="true" Class="mx-6"/>
-}
+
 
 @if (downloadDataError)
 {
@@ -41,6 +38,10 @@ else
 {
     <MudContainer Fixed="true">
      <MudCard>
+         @if (commentary != null && commentary.IsLive)
+{
+      <MudBadge Content="live" Color="Color.Success" Overlap="true" />
+}
         <MudCardContent>
             <MudText Typo="Typo.h5">@commentary.Caption</MudText>
             <MudText Typo="Typo.body2">@commentary.Description</MudText>
